@@ -74,7 +74,6 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 }
 h1,h2,h3{margin:0;text-wrap:balance;letter-spacing:-.01em}
 button{font:inherit;color:inherit}
-.num{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 
@@ -84,36 +83,30 @@ button{font:inherit;color:inherit}
 .brand{display:flex;align-items:baseline;gap:9px;min-width:0;flex:1}
 .brand h1{font-size:16px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .brand .cur{font-family:var(--font-mono);font-size:10.5px;letter-spacing:.09em;color:var(--muted);border:1px solid var(--border);border-radius:999px;padding:2px 6px;flex:none}
-.iconbtn{
-  display:inline-flex;align-items:center;justify-content:center;gap:6px;
-  height:34px;min-width:34px;padding:0 9px;flex:none;
+.gear{
+  display:inline-grid;place-items:center;flex:none;width:36px;height:36px;padding:0;
   background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-sm);
-  cursor:pointer;font-size:12.5px;font-weight:500;color:var(--fg-2);
+  cursor:pointer;color:var(--fg-2);
 }
-.iconbtn:hover{background:var(--surface-3);color:var(--fg)}
-.iconbtn svg{width:16px;height:16px;flex:none}
-.langseg{display:flex;flex:none;border:1px solid var(--border);border-radius:var(--r-sm);overflow:hidden}
-.langseg button{
-  background:var(--surface-2);border:0;height:34px;padding:0 8px;cursor:pointer;
-  font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:.06em;color:var(--muted);
-}
-.langseg button:hover{background:var(--surface-3);color:var(--fg)}
-.langseg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-fg)}
-@media (max-width:460px){ .iconbtn .lbl{display:none} .brand .cur{display:none} .iconbtn{padding:0 7px} }
-.tabs{display:flex;gap:2px;padding-bottom:0}
+.gear:hover{background:var(--surface-3);color:var(--fg)}
+.gear svg{width:18px;height:18px}
+.gear[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
+.tabs{display:flex;gap:2px}
 .tab{
-  flex:1;background:none;border:0;border-bottom:2px solid transparent;
-  padding:9px 4px 10px;cursor:pointer;color:var(--muted);
+  flex:1;min-width:0;background:none;border:0;border-bottom:2px solid transparent;
+  padding:9px 2px 10px;cursor:pointer;color:var(--muted);
   font-size:13px;font-weight:600;letter-spacing:.01em;border-radius:6px 6px 0 0;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
 .tab:hover{color:var(--fg-2);background:var(--surface-2)}
 .tab[aria-selected="true"]{color:var(--accent);border-bottom-color:var(--accent)}
 .tab .count{font-family:var(--font-mono);font-size:11px;opacity:.75;margin-left:4px}
+@media (max-width:400px){ .tab .count{display:none} }
 
 main{padding-block:16px 44px}
 
 /* ---------- generic blocks ---------- */
-.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow)}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow);overflow:hidden}
 .pad{padding:14px}
 .stack{display:flex;flex-direction:column;gap:14px}
 .row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
@@ -136,8 +129,6 @@ hr.sep{border:0;border-top:1px solid var(--border);margin:0}
 .btn.danger:hover{background:var(--bad-soft)}
 .btn.tiny{padding:5px 9px;font-size:12px;border-radius:6px}
 .btn.wide{width:100%}
-.btn svg{width:15px;height:15px}
-.btn[disabled]{opacity:.45;cursor:not-allowed}
 
 .pill{
   display:inline-flex;align-items:center;gap:5px;padding:2.5px 8px;border-radius:999px;
@@ -158,7 +149,7 @@ hr.sep{border:0;border-top:1px solid var(--border);margin:0}
 
 /* ---------- forms ---------- */
 .field{display:flex;flex-direction:column;gap:5px;min-width:0}
-.field > label{font-size:11.5px;font-weight:600;color:var(--fg-2);letter-spacing:.01em}
+.field > label, .field > .lbl{font-size:11.5px;font-weight:600;color:var(--fg-2);letter-spacing:.01em}
 .field .hint{font-size:11px;color:var(--muted)}
 input[type=text],input[type=number],input[type=date],select,textarea{
   width:100%;padding:9px 10px;font:inherit;font-size:14px;
@@ -180,6 +171,18 @@ input[type=color]{width:34px;height:26px;padding:0;border:1px solid var(--border
 .check input{width:17px;height:17px;accent-color:var(--accent);flex:none;margin:0}
 .formerr{color:var(--bad);font-size:12.5px;font-weight:600}
 
+/* switch (settings toggles) */
+.switch{display:flex;align-items:center;justify-content:space-between;gap:14px;cursor:pointer;position:relative}
+.switch .txt{display:flex;flex-direction:column;gap:2px;min-width:0}
+.switch .txt b{font-size:14px;font-weight:600}
+.switch .txt span{font-size:12px;color:var(--muted)}
+.switch input{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none}
+.switch .track{flex:none;width:46px;height:28px;border-radius:999px;background:var(--surface-3);border:1px solid var(--border-strong);position:relative;transition:background .15s,border-color .15s}
+.switch .track::after{content:"";position:absolute;top:2px;left:2px;width:22px;height:22px;border-radius:50%;background:#FFFFFF;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:transform .15s}
+.switch input:checked + .track{background:var(--accent);border-color:var(--accent)}
+.switch input:checked + .track::after{transform:translateX(18px)}
+.switch input:focus-visible + .track{outline:2px solid var(--accent);outline-offset:2px}
+
 /* ---------- stat tiles ---------- */
 .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px}
 .tile{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:11px 12px;display:flex;flex-direction:column;gap:3px;min-width:0}
@@ -198,7 +201,7 @@ input[type=color]{width:34px;height:26px;padding:0;border:1px solid var(--border
 .nav button svg{width:15px;height:15px}
 .dow{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;padding:0 10px 4px}
 .dow span{text-align:center;font-family:var(--font-mono);font-size:10px;letter-spacing:.06em;color:var(--muted);text-transform:uppercase}
-.days{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;padding:0 10px 12px}
+.days{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;padding:0 10px 10px}
 .day{
   position:relative;aspect-ratio:1/1;min-width:0;
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
@@ -219,14 +222,26 @@ input[type=color]{width:34px;height:26px;padding:0;border:1px solid var(--border
 .dots{display:flex;gap:2px;height:5px;align-items:center}
 .dots i{width:5px;height:5px;border-radius:999px;display:block;box-shadow:inset 0 0 0 1px rgba(0,0,0,.2)}
 .dots i.hollow{box-shadow:inset 0 0 0 1.5px currentColor;background:transparent!important}
-.day[aria-pressed="true"] .dots i{box-shadow:inset 0 0 0 1px rgba(255,255,255,.65)}
+.cuts{position:absolute;top:4px;left:0;right:0;display:flex;justify-content:center;gap:2px;height:5px}
+.cuts i{display:block;width:5px;height:5px;border-radius:1px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.2)}
+.day[aria-pressed="true"] .dots i, .day[aria-pressed="true"] .cuts i{box-shadow:inset 0 0 0 1px rgba(255,255,255,.7)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;padding:0 14px 12px;font-size:11px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.legend i{display:block;width:6px;height:6px;border-radius:999px;background:var(--fg-2)}
+.legend i.h{background:transparent;box-shadow:inset 0 0 0 1.5px var(--fg-2)}
+.legend i.sq{border-radius:1.5px}
+.cutrow{display:flex;align-items:center;gap:8px;padding:9px 14px;border-top:1px solid var(--border);font-size:13px}
+.cutrow .sq{width:10px;height:10px;border-radius:2px;flex:none;box-shadow:inset 0 0 0 1px rgba(0,0,0,.18)}
+.cutrow .nm{font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
 /* ---------- lists ---------- */
 .item{display:flex;flex-direction:column;gap:9px;padding:13px 14px;border-top:1px solid var(--border)}
 .item:first-child{border-top:0}
-.item .title{font-size:14px;font-weight:600;min-width:0;overflow-wrap:anywhere}
+.title{font-size:14px;font-weight:600;min-width:0;overflow-wrap:anywhere}
 .amount{font-family:var(--font-mono);font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap}
 .amount.big{font-size:16px}
+.amount.late{color:var(--bad)}
+.amount.settled{color:var(--muted)}
 .kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(104px,1fr));gap:8px 12px}
 .kv div{min-width:0}
 .kv .k{font-size:10.5px;font-family:var(--font-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);display:block}
@@ -237,7 +252,20 @@ input[type=color]{width:34px;height:26px;padding:0;border:1px solid var(--border
 .empty{padding:30px 16px;text-align:center;color:var(--muted);font-size:13.5px}
 .empty strong{display:block;color:var(--fg);font-size:15px;font-weight:600;margin-bottom:5px}
 
-.inst{display:flex;align-items:center;gap:10px;padding:8px 14px;border-top:1px solid var(--border);font-size:13px}
+/* collapsible card groups + purchases */
+details.grp > summary, details.pur > summary{list-style:none;cursor:pointer}
+details.grp > summary::-webkit-details-marker, details.pur > summary::-webkit-details-marker{display:none}
+details.grp > summary.cardstrip{padding-block:12px}
+details.grp > summary:hover{background:var(--surface-3)}
+.chev{width:14px;height:14px;flex:none;color:var(--muted);transition:transform .15s}
+details[open] > summary .chev{transform:rotate(90deg)}
+details.pur{border-top:1px solid var(--border)}
+details.pur > summary{display:flex;align-items:center;gap:10px;padding:12px 14px}
+details.pur > summary:hover{background:var(--surface-2)}
+details.pur > summary .title{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.purbody{display:flex;flex-direction:column;gap:9px;padding:2px 14px 13px 38px}
+
+.inst{display:flex;align-items:center;gap:10px;padding:8px 14px 8px 38px;border-top:1px solid var(--border);font-size:13px}
 .inst .ix{font-family:var(--font-mono);font-size:10.5px;color:var(--muted);width:34px;flex:none}
 .inst .dt{font-family:var(--font-mono);font-size:12px;font-variant-numeric:tabular-nums;flex:1;min-width:0}
 .inst.ispaid .dt,.inst.ispaid .amount{color:var(--muted);text-decoration:line-through}
@@ -248,11 +276,40 @@ input[type=color]{width:34px;height:26px;padding:0;border:1px solid var(--border
 .banner .btn{flex:none}
 .confirm{display:flex;align-items:center;gap:8px;padding:9px 13px;background:var(--bad-soft);border-top:1px solid var(--border);font-size:12.5px;font-weight:600;color:var(--bad);flex-wrap:wrap}
 
-details.disc > summary{cursor:pointer;padding:9px 14px;font-size:12.5px;font-weight:600;color:var(--accent);border-top:1px solid var(--border);list-style:none}
+details.disc > summary{cursor:pointer;padding:9px 14px 9px 38px;font-size:12.5px;font-weight:600;color:var(--accent);border-top:1px solid var(--border);list-style:none}
 details.disc > summary::-webkit-details-marker{display:none}
 details.disc > summary::before{content:"▸ ";font-size:10px}
 details.disc[open] > summary::before{content:"▾ "}
+
+.sechead{font-size:15px;font-weight:600}
+
+/* paid-off prompt + completed list */
+.toast{
+  position:fixed;left:0;right:0;bottom:0;z-index:50;pointer-events:none;
+  padding-left:max(16px, env(safe-area-inset-left,0px));
+  padding-right:max(16px, env(safe-area-inset-right,0px));
+  padding-bottom:calc(14px + env(safe-area-inset-bottom,0px));
+}
+.toast .box{
+  pointer-events:auto;max-width:560px;margin:0 auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  padding:12px 14px;border-radius:12px;background:var(--fg);color:var(--bg);
+  box-shadow:0 10px 30px -8px rgba(0,0,0,.45);
+}
+.toast .msg{flex:1 1 180px;min-width:0;font-size:13.5px;font-weight:600;overflow-wrap:anywhere}
+.toast .btn{background:transparent;color:var(--bg);border-color:color-mix(in srgb,var(--bg) 45%, transparent)}
+.toast .btn.go{background:var(--bg);color:var(--fg);border-color:var(--bg)}
+.done-row{display:flex;align-items:center;gap:8px;padding:10px 14px;border-top:1px solid var(--border);font-size:13px}
+.done-row .info{flex:1;min-width:0}
+.done-row .nm{display:block;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 </style>
+<script>
+/* Apply the saved theme before the page paints. Dark unless the user picked Light or Auto. */
+(function(){
+  var t = null;
+  try { t = localStorage.getItem('cardpaycal.theme'); } catch(e){}
+  if(t !== 'system') document.documentElement.setAttribute('data-theme', t === 'light' ? 'light' : 'dark');
+})();
+</script>
 </head>
 <body>
 <div class="topwrap">
@@ -262,15 +319,12 @@ details.disc[open] > summary::before{content:"▾ "}
         <h1 id="app-title">Card Payment Calendar</h1>
         <span class="cur">MXN</span>
       </div>
-      <div class="langseg" id="langseg">
-        <button type="button" data-act="lang" data-lang="en">EN</button>
-        <button type="button" data-act="lang" data-lang="es">ES</button>
-      </div>
-      <button class="iconbtn" id="btn-theme" type="button"></button>
-      <button class="iconbtn" id="btn-data" type="button"></button>
+      <button type="button" class="gear" id="btn-gear" data-act="open-settings" aria-pressed="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </button>
     </div>
     <div class="tabs" role="tablist">
-      <button class="tab" role="tab" data-view="calendar" aria-selected="true"></button>
+      <button class="tab" role="tab" data-view="calendar" aria-selected="true"><span class="lbl"></span></button>
       <button class="tab" role="tab" data-view="purchases" aria-selected="false"><span class="lbl"></span><span class="count" id="cnt-p"></span></button>
       <button class="tab" role="tab" data-view="cards" aria-selected="false"><span class="lbl"></span><span class="count" id="cnt-c"></span></button>
     </div>
@@ -282,9 +336,10 @@ details.disc[open] > summary::before{content:"▾ "}
     <section id="view-calendar" class="stack"></section>
     <section id="view-purchases" class="stack" hidden></section>
     <section id="view-cards" class="stack" hidden></section>
-    <section id="view-data" class="stack" hidden></section>
+    <section id="view-settings" class="stack" hidden></section>
   </div>
 </main>
+<div class="toast" id="toast" hidden></div>
 
 <script>
 (function(){
@@ -294,10 +349,13 @@ details.disc[open] > summary::before{content:"▾ "}
   var LS_KEY = 'cardpaycal.v1';
   var LS_THEME = 'cardpaycal.theme';
   var LS_LANG = 'cardpaycal.lang';
+  var LS_SETTINGS = 'cardpaycal.settings';
+  var LS_CLOSED = 'cardpaycal.closedCards';
 
   function lsGet(k){ try { return window.localStorage.getItem(k); } catch(e){ return null; } }
   function lsSet(k,v){ try { window.localStorage.setItem(k,v); return true; } catch(e){ return false; } }
   function lsDel(k){ try { window.localStorage.removeItem(k); } catch(e){} }
+  function lsJSON(k, fallback){ try { var v = JSON.parse(lsGet(k)); return (v && typeof v==='object') ? v : fallback; } catch(e){ return fallback; } }
 
   /* ================= money ================= */
   var MX = new Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN',minimumFractionDigits:2,maximumFractionDigits:2});
@@ -309,6 +367,7 @@ details.disc[open] > summary::before{content:"▾ "}
   /* =====================================================================
      Two hand-written language packs. Nothing is machine-translated at
      runtime — switching simply swaps which pack the UI reads from.
+     Both packs must keep exactly the same keys.
      ===================================================================== */
   var STR = {
     en: {
@@ -331,9 +390,7 @@ details.disc[open] > summary::before{content:"▾ "}
       appTitle:'Card Payment Calendar',
       langTitle:'Language',
       themeLabel:{system:'Auto', light:'Light', dark:'Dark'},
-      themeTitle: function(l){ return 'Theme: '+l+' — tap to change'; },
-      backup:'Backup',
-      tabCalendar:'Calendar', tabPurchases:'Purchases', tabCards:'Cards',
+      tabCalendar:'Calendar', tabPurchases:'Purchases', tabCards:'Cards', settingsTitle:'Settings', done:'Done',
 
       noCardsTitle:'No cards yet',
       noCardsBody:'Add a card first, then log the purchases on it. Nothing here is a real card number — just a name and a color.',
@@ -352,11 +409,13 @@ details.disc[open] > summary::before{content:"▾ "}
       tAllPaid:'everything is paid off',
 
       prevMonth:'Previous month', nextMonth:'Next month', today:'Today',
+      legendPayment:'Payment', legendPaid:'Paid', legendCutoff:'Cutoff',
       cardTotals: function(m,y){ return 'Card totals · '+m+' '+y; },
       paidChip: function(a){ return a+' paid'; },
 
       selectedDay:'Selected day',
       noPaymentsDay:'No payments due on this day.',
+      cutoffOn:'Statement cutoff',
       cardTotal:'card total',
       paymentXofY: function(i,n){ return 'Payment '+i+' of '+n; },
       paidPill:'Paid', pastDuePill:'Past due',
@@ -401,6 +460,7 @@ details.disc[open] > summary::before{content:"▾ "}
       savePurchase:'Save purchase', addPurchase:'Add purchase', newPurchaseBtn:'+ New purchase',
       noPurchases:'No purchases yet',
       noPurchasesBody:'Log what you bought, whether it is MSI, MCI or a single payment, and the calendar fills itself in.',
+      nPurchases: function(n){ return n+' purchase'+(n===1?'':'s'); },
       paidOffPill:'Paid off',
       nPastDue: function(n){ return n+' past due'; },
       leftOf: function(t){ return 'left of '+t; },
@@ -408,9 +468,19 @@ details.disc[open] > summary::before{content:"▾ "}
       paymentSchedule: function(n){ return 'Payment schedule ('+n+')'; },
       pay:'Pay', undo:'Undo',
       confirmDelPurchase: function(name){ return 'Delete “'+name+'”?'; },
+      removeCompleted:'Remove as completed', restore:'Restore',
+      paidOffToast: function(name){ return '“'+name+'” is paid off'; },
+      completedSection: function(n){ return 'Completed ('+n+')'; },
+      completedHint:'Paid-off purchases you removed from the list. Their payments stay in the calendar history.',
+      allCompleted:'Every purchase is paid off and put away.',
 
-      backupTitle:'Backup', done:'Done',
-      backupIntro:'Your data lives in this browser on this device. It survives closing the page and restarting the phone, but not clearing Safari or switching phones — so copy this text somewhere safe (Notes, email to yourself) when it matters.',
+      secCalendar:'Calendar',
+      showCutoffs:'Show statement cutoff dates',
+      showCutoffsHint:'Marks each card’s cutoff day on the calendar.',
+      secAppearance:'Appearance', theme:'Theme',
+
+      backupTitle:'Backup',
+      backupIntro:'Your data lives in this browser on this device. It survives closing the page and restarting the phone, but not clearing Safari, removing the app from the home screen or switching phones — so copy this text somewhere safe (Notes, email to yourself) when it matters.',
       exportLbl:'Export — copy this', copyBtn:'Copy to clipboard',
       copied:'Copied.', copyFail:'Could not copy — the text is selected, copy it manually.',
       importLbl:'Import — paste a backup here',
@@ -453,9 +523,7 @@ details.disc[open] > summary::before{content:"▾ "}
       appTitle:'Calendario de Pagos',
       langTitle:'Idioma',
       themeLabel:{system:'Auto', light:'Claro', dark:'Oscuro'},
-      themeTitle: function(l){ return 'Tema: '+l+' — toca para cambiar'; },
-      backup:'Respaldo',
-      tabCalendar:'Calendario', tabPurchases:'Compras', tabCards:'Tarjetas',
+      tabCalendar:'Calendario', tabPurchases:'Compras', tabCards:'Tarjetas', settingsTitle:'Opciones', done:'Listo',
 
       noCardsTitle:'Aún no hay tarjetas',
       noCardsBody:'Agrega una tarjeta primero y luego registra sus compras. Aquí nunca va un número de tarjeta real — solo un nombre y un color.',
@@ -474,11 +542,13 @@ details.disc[open] > summary::before{content:"▾ "}
       tAllPaid:'todo está pagado',
 
       prevMonth:'Mes anterior', nextMonth:'Mes siguiente', today:'Hoy',
+      legendPayment:'Pago', legendPaid:'Pagado', legendCutoff:'Corte',
       cardTotals: function(m,y){ return 'Total por tarjeta · '+m+' '+y; },
       paidChip: function(a){ return a+' pagado'; },
 
       selectedDay:'Día seleccionado',
       noPaymentsDay:'No hay pagos este día.',
+      cutoffOn:'Fecha de corte',
       cardTotal:'total de la tarjeta',
       paymentXofY: function(i,n){ return 'Pago '+i+' de '+n; },
       paidPill:'Pagado', pastDuePill:'Vencido',
@@ -523,6 +593,7 @@ details.disc[open] > summary::before{content:"▾ "}
       savePurchase:'Guardar compra', addPurchase:'Agregar compra', newPurchaseBtn:'+ Nueva compra',
       noPurchases:'Aún no hay compras',
       noPurchasesBody:'Registra lo que compraste, si es a MSI, MCI o un solo pago, y el calendario se llena solo.',
+      nPurchases: function(n){ return n+' compra'+(n===1?'':'s'); },
       paidOffPill:'Liquidada',
       nPastDue: function(n){ return n+' vencido'+(n===1?'':'s'); },
       leftOf: function(t){ return 'de '+t; },
@@ -530,9 +601,19 @@ details.disc[open] > summary::before{content:"▾ "}
       paymentSchedule: function(n){ return 'Calendario de pagos ('+n+')'; },
       pay:'Pagar', undo:'Deshacer',
       confirmDelPurchase: function(name){ return '¿Eliminar “'+name+'”?'; },
+      removeCompleted:'Quitar como completada', restore:'Restaurar',
+      paidOffToast: function(name){ return '“'+name+'” quedó liquidada'; },
+      completedSection: function(n){ return 'Completadas ('+n+')'; },
+      completedHint:'Compras liquidadas que quitaste de la lista. Sus pagos siguen en el historial del calendario.',
+      allCompleted:'Todas tus compras están liquidadas y guardadas.',
 
-      backupTitle:'Respaldo', done:'Listo',
-      backupIntro:'Tus datos viven en este navegador, en este dispositivo. Sobreviven cerrar la página y apagar el celular, pero no borrar Safari ni cambiar de teléfono — así que copia este texto a un lugar seguro (Notas, un correo a ti mismo) cuando te importe.',
+      secCalendar:'Calendario',
+      showCutoffs:'Mostrar fechas de corte',
+      showCutoffsHint:'Marca en el calendario el día de corte de cada tarjeta.',
+      secAppearance:'Apariencia', theme:'Tema',
+
+      backupTitle:'Respaldo',
+      backupIntro:'Tus datos viven en este navegador, en este dispositivo. Sobreviven cerrar la página y apagar el celular, pero no borrar Safari, quitar la app de la pantalla de inicio ni cambiar de teléfono — así que copia este texto a un lugar seguro (Notas, un correo a ti mismo) cuando te importe.',
       exportLbl:'Exportar — copia esto', copyBtn:'Copiar al portapapeles',
       copied:'Copiado.', copyFail:'No se pudo copiar — el texto está seleccionado, cópialo a mano.',
       importLbl:'Importar — pega aquí un respaldo',
@@ -578,7 +659,6 @@ details.disc[open] > summary::before{content:"▾ "}
   function daysBetween(a,b){ return Math.round((b-a)/86400000); }
   function round2(n){ return Math.round((Number(n)||0)*100)/100; }
 
-  // language-aware wrappers
   function fmtDate(d){ return L.fmtDate(d); }
   function fmtShort(d){ return L.fmtShort(d); }
   function fmtLong(d){ return L.fmtLong(d); }
@@ -590,15 +670,20 @@ details.disc[open] > summary::before{content:"▾ "}
   var PALETTE = ['#2F6FD0','#1E8E6A','#C2622A','#8A4FBF','#C23A6B','#2A8FA8','#7A8A1F','#4A5568'];
 
   var state = { cards:[], purchases:[] };
+  var settings = { showCutoffs:true };
   var ui = {
     view:'calendar',
+    prevView:'calendar',  // where the Done button / gear returns to
+    toast:null,           // id of a purchase that was just paid off (shows the remove prompt)
     calY: today().getFullYear(),
     calM: today().getMonth(),
     selected: dayKey(today()),
     cardForm:null,
     purchaseForm:null,
     pendingDelete:null,
-    openPurchase:{},
+    closedCards:{},       // card id -> true when its group is collapsed (remembered)
+    openPurchase:{},      // purchase id -> true when expanded (this visit only)
+    openSchedule:{},      // purchase id -> true when its payment list is expanded
     seeded:false,
     importMsg:'', importOk:false,
     formErr:''
@@ -607,10 +692,13 @@ details.disc[open] > summary::before{content:"▾ "}
   function uid(){ return Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-4); }
   function cardById(id){ for(var i=0;i<state.cards.length;i++){ if(state.cards[i].id===id) return state.cards[i]; } return null; }
   function purchaseById(id){ for(var i=0;i<state.purchases.length;i++){ if(state.purchases[i].id===id) return state.purchases[i]; } return null; }
+  function activePurchases(){ return state.purchases.filter(function(p){ return !p.archived; }); }
 
   function save(){
     lsSet(LS_KEY, JSON.stringify({v:1, seeded:ui.seeded, cards:state.cards, purchases:state.purchases}));
   }
+  function saveSettings(){ lsSet(LS_SETTINGS, JSON.stringify(settings)); }
+  function saveClosed(){ lsSet(LS_CLOSED, JSON.stringify(ui.closedCards)); }
   function load(){
     var raw = lsGet(LS_KEY);
     if(!raw) return false;
@@ -651,7 +739,8 @@ details.disc[open] > summary::before{content:"▾ "}
       total: round2(p.total),
       months: months,
       date: /^\d{4}-\d{2}-\d{2}$/.test(p.date||'') ? p.date : toISO(today()),
-      paid: paid
+      paid: paid,
+      archived: !!p.archived
     };
   }
 
@@ -731,6 +820,18 @@ details.disc[open] > summary::before{content:"▾ "}
     return out;
   }
 
+  // Cutoff days that fall inside a given month: { 'YYYY-MM-DD': [card, ...] }
+  function cutoffsInMonth(y, m){
+    var out = {};
+    for(var i=0;i<state.cards.length;i++){
+      var c = state.cards[i];
+      if(!c.useDates || !c.cutoffDay) continue;
+      var k = dayKey(dayOn(y, m, c.cutoffDay));
+      (out[k] = out[k] || []).push(c);
+    }
+    return out;
+  }
+
   /* ================= seed example data ================= */
   function seed(){
     var t = today(), S = L.seed;
@@ -751,52 +852,31 @@ details.disc[open] > summary::before{content:"▾ "}
     save();
   }
 
-  /* ================= language ================= */
+  /* ================= language + theme ================= */
   function setLang(code, redraw){
     L = (code==='es') ? STR.es : STR.en;
     lsSet(LS_LANG, L.code);
     document.documentElement.lang = L.code;
     document.title = L.appTitle;
     document.getElementById('app-title').textContent = L.appTitle;
-    document.getElementById('langseg').title = L.langTitle;
-    var lb = document.querySelectorAll('#langseg button');
-    for(var i=0;i<lb.length;i++) lb[i].setAttribute('aria-pressed', String(lb[i].dataset.lang===L.code));
+    var gear = document.getElementById('btn-gear');
+    gear.title = L.settingsTitle;
+    gear.setAttribute('aria-label', L.settingsTitle);
+    var labels = { calendar:L.tabCalendar, purchases:L.tabPurchases, cards:L.tabCards };
     var tabs = document.querySelectorAll('.tab');
-    tabs[0].textContent = L.tabCalendar;
-    tabs[1].querySelector('.lbl').textContent = L.tabPurchases;
-    tabs[2].querySelector('.lbl').textContent = L.tabCards;
-    document.getElementById('btn-data').innerHTML =
-      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>'
-      + '<span class="lbl">'+L.backup+'</span>';
-    document.getElementById('btn-data').title = L.backupTitle;
-    applyTheme();
+    for(var i=0;i<tabs.length;i++) tabs[i].querySelector('.lbl').textContent = labels[tabs[i].dataset.view];
     if(redraw) render();
   }
 
-  /* ================= theme ================= */
+  // Dark unless the user picked Light or Auto in Settings.
+  function themePref(){ var p = lsGet(LS_THEME); return (p==='light'||p==='system') ? p : 'dark'; }
   function applyTheme(){
-    var pref = lsGet(LS_THEME) || 'system';
-    var root = document.documentElement;
-    if(pref==='light' || pref==='dark') root.setAttribute('data-theme', pref);
-    else root.removeAttribute('data-theme');
-    var icons = {
-      system:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>',
-      light:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5L19 19M19 5l-1.5 1.5M6.5 17.5L5 19"/></svg>',
-      dark:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>'
-    };
-    var label = L.themeLabel[pref];
-    var b = document.getElementById('btn-theme');
-    b.innerHTML = icons[pref] + '<span class="lbl">'+label+'</span>';
-    b.title = L.themeTitle(label);
-  }
-  function cycleTheme(){
-    var order=['system','light','dark'];
-    var cur = lsGet(LS_THEME) || 'system';
-    lsSet(LS_THEME, order[(order.indexOf(cur)+1) % 3]);
-    applyTheme();
+    var pref = themePref(), root = document.documentElement;
+    if(pref==='system') root.removeAttribute('data-theme'); else root.setAttribute('data-theme', pref);
   }
 
   /* ================= small view helpers ================= */
+  var CHEV = '<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>';
   function typePill(t){
     if(t==='msi') return '<span class="pill msi">MSI</span>';
     if(t==='mci') return '<span class="pill mci">MCI</span>';
@@ -841,6 +921,7 @@ details.disc[open] > summary::before{content:"▾ "}
       if(!byDay[e.key]) byDay[e.key] = [];
       byDay[e.key].push(e);
     }
+    var cuts = settings.showCutoffs ? cutoffsInMonth(ui.calY, ui.calM) : {};
 
     var next = null;
     for(i=0;i<ev.length;i++){ if(!ev[i].paid && ev[i].date >= t){ next = ev[i]; break; } }
@@ -857,7 +938,7 @@ details.disc[open] > summary::before{content:"▾ "}
     }
 
     html += '<div class="tiles">'
-      + tile(L.tTotalRemaining, money0(totalRemaining), L.tTracked(state.purchases.length))
+      + tile(L.tTotalRemaining, money0(totalRemaining), L.tTracked(activePurchases().length))
       + tile(L.tDueIn(L.mon[ui.calM], ui.calY), money0(monthDue), monthPaid>0 ? L.tAlreadyPaid(money0(monthPaid)) : L.tAcrossCards)
       + (overdueCount
           ? tile(L.tPastDue, money0(overdueAmt), L.tNotMarked(overdueCount), true)
@@ -902,16 +983,27 @@ details.disc[open] > summary::before{content:"▾ "}
           dots += dot(list[j].card.color, allPaid);
         }
       }
+      var cutMarks = '';
+      if(cuts[key]){
+        cutMarks = '<span class="cuts">' + cuts[key].slice(0,4).map(function(cc){ return '<i style="background:'+esc(cc.color)+'"></i>'; }).join('') + '</span>';
+      }
       var cls = 'day';
       if(list.length) cls += ' has';
       if(unpaidPast) cls += ' late';
       if(key===dayKey(t)) cls += ' today';
       html += '<button type="button" class="'+cls+'" data-act="pick" data-key="'+key+'" aria-pressed="'+(key===ui.selected)+'">'
+        + cutMarks
         + '<span class="d">'+c.n+'</span>'
         + '<span class="dots">'+dots+'</span>'
         + '</button>';
     }
     html += '</div>';
+
+    html += '<div class="legend">'
+      + '<span><i></i>'+L.legendPayment+'</span>'
+      + '<span><i class="h"></i>'+L.legendPaid+'</span>'
+      + (settings.showCutoffs ? '<span><i class="sq"></i>'+L.legendCutoff+'</span>' : '')
+      + '</div>';
 
     var cardRows = Object.keys(byCardMonth).map(function(k){ return byCardMonth[k]; })
       .sort(function(a,b){ return (b.due+b.paid)-(a.due+a.paid); });
@@ -930,13 +1022,20 @@ details.disc[open] > summary::before{content:"▾ "}
     }
     html += '</div>';
 
+    /* ---- selected day ---- */
     var selDate = parseISO(ui.selected);
     var selList = (byDay[ui.selected]||[]).slice().sort(function(a,b){ return a.card.name.localeCompare(b.card.name); });
+    var selCuts = settings.showCutoffs ? (cutoffsInMonth(selDate.getFullYear(), selDate.getMonth())[ui.selected] || []) : [];
     html += '<div class="card">'
       + '<div class="pad spread" style="padding-bottom:10px">'
         + '<div><span class="eyebrow">'+L.selectedDay+'</span><div style="font-size:15px;font-weight:600;margin-top:2px">'+fmtLong(selDate)+'</div></div>'
         + '<span class="pill ghost">'+relDay(selDate)+'</span>'
       + '</div>';
+
+    for(i=0;i<selCuts.length;i++){
+      html += '<div class="cutrow"><span class="sq" style="background:'+esc(selCuts[i].color)+'"></span>'
+        + '<span class="nm">'+esc(selCuts[i].name)+'</span><span class="xs muted">'+L.cutoffOn+'</span></div>';
+    }
 
     if(!selList.length){
       html += '<hr class="sep"><div class="empty" style="padding:22px 16px">'+L.noPaymentsDay+'</div>';
@@ -984,6 +1083,7 @@ details.disc[open] > summary::before{content:"▾ "}
     }
     html += '</div>';
 
+    /* ---- payoff countdown ---- */
     var active = state.purchases.map(function(p){ return {p:p, s:stats(p), c:cardById(p.cardId)}; })
       .filter(function(x){ return x.c && !x.s.done; })
       .sort(function(a,b){ return a.s.nextDue - b.s.nextDue; });
@@ -1037,7 +1137,7 @@ details.disc[open] > summary::before{content:"▾ "}
         + '<div class="field"><label for="c-name">'+L.cardName+'</label>'
           + '<input id="c-name" type="text" value="'+esc(f.name)+'" placeholder="'+esc(L.cardNamePh)+'" maxlength="40" autocomplete="off">'
           + '<span class="hint">'+L.cardNameHint+'</span></div>'
-        + '<div class="field"><label>'+L.color+'</label><div class="swatches">'
+        + '<div class="field"><span class="lbl">'+L.color+'</span><div class="swatches">'
           + PALETTE.map(function(p){ return '<button type="button" data-act="pick-color" data-color="'+p+'" style="background:'+p+'" aria-pressed="'+(f.color.toLowerCase()===p.toLowerCase())+'" title="'+p+'"></button>'; }).join('')
           + '<input type="color" id="c-color" value="'+esc(f.color)+'" title="'+esc(L.customColor)+'">'
           + '</div></div>'
@@ -1060,7 +1160,7 @@ details.disc[open] > summary::before{content:"▾ "}
       html += '<div class="card">';
       for(var i=0;i<state.cards.length;i++){
         var c = state.cards[i];
-        var ps = state.purchases.filter(function(p){ return p.cardId===c.id; });
+        var ps = state.purchases.filter(function(p){ return p.cardId===c.id && !p.archived; });
         var rem=0, mo=0, open=0;
         for(var j=0;j<ps.length;j++){
           var s = stats(ps[j]);
@@ -1120,7 +1220,7 @@ details.disc[open] > summary::before{content:"▾ "}
         + '<div class="field"><label for="p-card">'+L.cardLbl+'</label><select id="p-card">'
           + state.cards.map(function(c){ return '<option value="'+c.id+'"'+(c.id===f.cardId?' selected':'')+'>'+esc(c.name)+'</option>'; }).join('')
           + '</select></div>'
-        + '<div class="field"><label>'+L.plan+'</label><div class="seg">'
+        + '<div class="field"><span class="lbl">'+L.plan+'</span><div class="seg">'
           + '<button type="button" data-act="pick-type" data-type="msi" aria-pressed="'+(f.type==='msi')+'">MSI</button>'
           + '<button type="button" data-act="pick-type" data-type="mci" aria-pressed="'+(f.type==='mci')+'">MCI</button>'
           + '<button type="button" data-act="pick-type" data-type="direct" aria-pressed="'+(f.type==='direct')+'">'+L.onePayment+'</button>'
@@ -1144,56 +1244,68 @@ details.disc[open] > summary::before{content:"▾ "}
       html += '<button class="btn primary wide" data-act="new-purchase">'+L.newPurchaseBtn+'</button>';
     }
 
-    if(!state.purchases.length){
+    var active = activePurchases();
+    var archived = state.purchases.filter(function(p){ return p.archived; });
+    if(!active.length && !archived.length){
       html += '<div class="card empty"><strong>'+L.noPurchases+'</strong>'+L.noPurchasesBody+'</div>';
       el.innerHTML = html; return;
+    }
+    if(!active.length){
+      html += '<div class="card empty" style="padding:22px 16px">'+L.allCompleted+'</div>';
     }
 
     var t = today();
     for(var ci=0; ci<state.cards.length; ci++){
       var c = state.cards[ci];
-      var ps = state.purchases.filter(function(p){ return p.cardId===c.id; });
+      var ps = active.filter(function(p){ return p.cardId===c.id; });
       if(!ps.length) continue;
-      var totRem = 0;
       var rows = ps.map(function(p){ return {p:p, s:stats(p)}; });
-      rows.sort(function(a,b){ return (a.s.done?1:0)-(b.s.done?1:0) || (a.s.nextDue||0)-(b.s.nextDue||0); });
+      // Newest purchase date first; the order they were entered in does not matter.
+      rows.sort(function(a,b){ return b.p.date.localeCompare(a.p.date) || a.p.name.localeCompare(b.p.name); });
+      var totRem = 0;
       for(var k=0;k<rows.length;k++) totRem = round2(totRem + rows[k].s.remaining);
 
-      html += '<div class="card">'
-        + '<div class="cardstrip">'
+      html += '<details class="card grp" data-cid="'+c.id+'"'+(ui.closedCards[c.id]?'':' open')+'>'
+        + '<summary class="cardstrip">'
+          + CHEV
           + '<span class="swatch lg" style="background:'+esc(c.color)+'"></span>'
           + '<span class="nm">'+esc(c.name)+'</span>'
-          + '<span class="xs muted">'+esc(cardDatesLabel(c))+'</span>'
+          + '<span class="xs muted">'+esc(L.nPurchases(rows.length))+'</span>'
           + '<span class="amount">'+money(totRem)+'</span>'
-        + '</div>';
+        + '</summary>';
 
       for(k=0;k<rows.length;k++){
         var p = rows[k].p, s = rows[k].s;
         var pct = p.total>0 ? Math.min(100, Math.round(s.paidAmt/p.total*100)) : 0;
-        html += '<div class="item">'
-          + '<div class="spread">'
-            + '<div style="min-width:0;flex:1">'
-              + '<div class="title">'+esc(p.name)+'</div>'
-              + '<div class="row sm muted" style="gap:6px;margin-top:3px">'
-                + typePill(p.type)
-                + '<span>'+(p.type==='direct' ? money(p.total) : money(s.monthly)+' × '+s.n)+'</span>'
-                + (s.done ? '<span class="pill done">'+L.paidOffPill+'</span>' : s.overdue ? '<span class="pill late">'+esc(L.nPastDue(s.overdue))+'</span>' : '')
-              + '</div>'
+        var amtCls = s.done ? 'amount settled' : (s.overdue ? 'amount late' : 'amount');
+        var amtTxt = s.done ? '✓ '+money(p.total) : money(s.remaining);
+
+        html += '<details class="pur" data-pid="'+p.id+'"'+(ui.openPurchase[p.id]?' open':'')+'>'
+          + '<summary>'
+            + CHEV
+            + '<span class="title">'+esc(p.name)+'</span>'
+            + '<span class="'+amtCls+'">'+amtTxt+'</span>'
+          + '</summary>'
+          + '<div class="purbody">'
+            + '<div class="row sm muted" style="gap:6px">'
+              + typePill(p.type)
+              + '<span>'+(p.type==='direct' ? money(p.total) : money(s.monthly)+' × '+s.n)+'</span>'
+              + '<span>· '+esc(L.leftOf(money(p.total)))+'</span>'
+              + (s.done ? '<span class="pill done">'+L.paidOffPill+'</span>' : s.overdue ? '<span class="pill late">'+esc(L.nPastDue(s.overdue))+'</span>' : '')
             + '</div>'
-            + '<div style="text-align:right"><div class="amount big">'+money(s.remaining)+'</div><div class="xs muted">'+esc(L.leftOf(money(p.total)))+'</div></div>'
-          + '</div>'
-          + '<div class="bar"><i style="width:'+pct+'%;background:'+esc(c.color)+'"></i></div>'
-          + '<div class="kv">'
-            + '<div><span class="k">'+L.bought+'</span><span class="v" style="font-size:12px">'+fmtDate(parseISO(p.date))+'</span></div>'
-            + '<div><span class="k">'+L.tNextPayment+'</span><span class="v" style="font-size:12px">'+(s.nextDue?fmtShort(s.nextDue):'—')+'</span></div>'
-            + '<div><span class="k">'+L.progress+'</span><span class="v">'+s.paidCount+'/'+s.n+'</span></div>'
-            + '<div><span class="k">'+L.debtFree+'</span><span class="v" style="font-size:12px">'+fmtMonth(s.payoff)+'</span></div>'
-          + '</div>'
-          + (p.note ? '<div class="xs muted" style="overflow-wrap:anywhere">'+esc(p.note)+'</div>' : '')
-          + '<div class="row" style="gap:7px">'
-            + '<button class="btn tiny" data-act="edit-purchase" data-id="'+p.id+'">'+L.edit+'</button>'
-            + '<button class="btn tiny danger" data-act="ask-del" data-target="purchase:'+p.id+'">'+L.del+'</button>'
-          + '</div>'
+            + '<div class="bar"><i style="width:'+pct+'%;background:'+esc(c.color)+'"></i></div>'
+            + '<div class="kv">'
+              + '<div><span class="k">'+L.bought+'</span><span class="v" style="font-size:12px">'+fmtDate(parseISO(p.date))+'</span></div>'
+              + '<div><span class="k">'+L.tNextPayment+'</span><span class="v" style="font-size:12px">'+(s.nextDue?fmtShort(s.nextDue):'—')+'</span></div>'
+              + '<div><span class="k">'+L.progress+'</span><span class="v">'+s.paidCount+'/'+s.n+'</span></div>'
+              + '<div><span class="k">'+L.debtFree+'</span><span class="v" style="font-size:12px">'+fmtMonth(s.payoff)+'</span></div>'
+            + '</div>'
+            + (p.note ? '<div class="xs muted" style="overflow-wrap:anywhere">'+esc(p.note)+'</div>' : '')
+            + '<div class="row" style="gap:7px">'
+              + (s.done ? '<button class="btn tiny primary" data-act="archive" data-id="'+p.id+'">'+L.removeCompleted+'</button>' : '')
+              + '<button class="btn tiny" data-act="edit-purchase" data-id="'+p.id+'">'+L.edit+'</button>'
+              + '<button class="btn tiny danger" data-act="ask-del" data-target="purchase:'+p.id+'">'+L.del+'</button>'
+            + '</div>'
           + '</div>';
 
         if(ui.pendingDelete==='purchase:'+p.id){
@@ -1202,7 +1314,7 @@ details.disc[open] > summary::before{content:"▾ "}
             + '<button class="btn tiny" data-act="cancel-del">'+L.keepIt+'</button></div>';
         }
 
-        html += '<details class="disc" '+(ui.openPurchase[p.id]?'open':'')+' data-pid="'+p.id+'">'
+        html += '<details class="disc" data-sid="'+p.id+'"'+(ui.openSchedule[p.id]?' open':'')+'>'
           + '<summary>'+esc(L.paymentSchedule(s.n))+'</summary>';
         for(var q=0;q<s.sch.length;q++){
           var it = s.sch[q], isLate = !it.paid && it.date < t;
@@ -1213,58 +1325,132 @@ details.disc[open] > summary::before{content:"▾ "}
             + '<button class="btn tiny'+(it.paid?'':' primary')+'" data-act="toggle-paid" data-id="'+p.id+'" data-ix="'+q+'">'+(it.paid?L.undo:L.pay)+'</button>'
             + '</div>';
         }
-        html += '</details>';
+        html += '</details>';   // schedule
+        html += '</details>';   // purchase
       }
-      html += '</div>';
+      html += '</details>';     // card group
+    }
+
+    // Paid-off purchases the user put away. Collapsed unless they opened it.
+    if(archived.length){
+      archived.sort(function(a,b){ return b.date.localeCompare(a.date); });
+      html += '<details class="card grp" data-cid="__done"'+(ui.closedCards.__done===false?' open':'')+'>'
+        + '<summary class="cardstrip">'+CHEV+'<span class="nm">'+esc(L.completedSection(archived.length))+'</span></summary>'
+        + '<div class="pad xs muted" style="padding-block:10px">'+L.completedHint+'</div>';
+      for(var a=0;a<archived.length;a++){
+        var ap = archived[a], ac = cardById(ap.cardId);
+        html += '<div class="done-row">'
+          + '<span class="swatch" style="background:'+esc(ac?ac.color:'#888888')+'"></span>'
+          + '<div class="info"><span class="nm">'+esc(ap.name)+'</span><span class="xs muted amount">'+money(ap.total)+'</span></div>'
+          + '<button class="btn tiny" data-act="restore" data-id="'+ap.id+'">'+L.restore+'</button>'
+          + '<button class="btn tiny danger" data-act="ask-del" data-target="purchase:'+ap.id+'">'+L.del+'</button>'
+          + '</div>';
+        if(ui.pendingDelete==='purchase:'+ap.id){
+          html += '<div class="confirm"><span>'+esc(L.confirmDelPurchase(ap.name))+'</span>'
+            + '<button class="btn tiny danger" data-act="del-purchase" data-id="'+ap.id+'">'+L.yesDelete+'</button>'
+            + '<button class="btn tiny" data-act="cancel-del">'+L.keepIt+'</button></div>';
+        }
+      }
+      html += '</details>';
     }
     el.innerHTML = html;
   }
 
-  /* ================= BACKUP VIEW ================= */
-  function renderData(){
-    var el = document.getElementById('view-data');
+  /* ================= SETTINGS VIEW ================= */
+  function renderSettings(){
+    var el = document.getElementById('view-settings');
+    var pref = themePref();
     var payload = JSON.stringify({v:1, cards:state.cards, purchases:state.purchases}, null, 2);
     el.innerHTML = ''
+      + '<div class="spread"><h2 style="font-size:18px;font-weight:600">'+L.settingsTitle+'</h2>'
+        + '<button class="btn tiny" data-act="settings-done">'+L.done+'</button></div>'
+
       + '<div class="card pad stack">'
-        + '<div class="spread"><h2 style="font-size:15px">'+L.backupTitle+'</h2><button class="btn tiny" data-act="goto" data-view="calendar">'+L.done+'</button></div>'
+        + '<h2 class="sechead">'+L.langTitle+'</h2>'
+        + '<div class="seg">'
+          + '<button type="button" data-act="lang" data-lang="en" aria-pressed="'+(L.code==='en')+'">English</button>'
+          + '<button type="button" data-act="lang" data-lang="es" aria-pressed="'+(L.code==='es')+'">Español</button>'
+        + '</div>'
+      + '</div>'
+
+      + '<div class="card pad stack">'
+        + '<h2 class="sechead">'+L.secCalendar+'</h2>'
+        + '<label class="switch" for="s-cutoffs">'
+          + '<span class="txt"><b>'+L.showCutoffs+'</b><span>'+L.showCutoffsHint+'</span></span>'
+          + '<input type="checkbox" id="s-cutoffs" '+(settings.showCutoffs?'checked':'')+'>'
+          + '<span class="track" aria-hidden="true"></span>'
+        + '</label>'
+      + '</div>'
+
+      + '<div class="card pad stack">'
+        + '<h2 class="sechead">'+L.secAppearance+'</h2>'
+        + '<div class="field"><span class="lbl">'+L.theme+'</span><div class="seg">'
+          + ['system','light','dark'].map(function(k){
+              return '<button type="button" data-act="theme" data-theme="'+k+'" aria-pressed="'+(pref===k)+'">'+L.themeLabel[k]+'</button>';
+            }).join('')
+        + '</div></div>'
+      + '</div>'
+
+      + '<div class="card pad stack">'
+        + '<h2 class="sechead">'+L.backupTitle+'</h2>'
         + '<p class="sm muted" style="margin:0">'+L.backupIntro+'</p>'
         + '<div class="field"><label for="d-export">'+L.exportLbl+'</label>'
           + '<textarea id="d-export" readonly spellcheck="false">'+esc(payload)+'</textarea></div>'
         + '<div class="row"><button class="btn primary" data-act="copy">'+L.copyBtn+'</button>'
           + '<span class="sm muted" id="copy-msg"></span></div>'
-      + '</div>'
-      + '<div class="card pad stack">'
+        + '<hr class="sep">'
         + '<div class="field"><label for="d-import">'+L.importLbl+'</label>'
           + '<textarea id="d-import" spellcheck="false" placeholder=\'{"v":1,"cards":[...],"purchases":[...]}\'></textarea>'
           + '<span class="hint">'+L.importHint+'</span></div>'
         + (ui.importMsg ? '<div class="'+(ui.importOk?'sm':'formerr')+'">'+esc(ui.importMsg)+'</div>' : '')
         + '<button class="btn wide" data-act="import">'+L.importBtn+'</button>'
       + '</div>'
-      + '<div class="card pad stack">'
-        + '<div class="field"><label>'+L.startOver+'</label><span class="hint">'+L.startOverHint+'</span></div>'
+
+      + '<div class="card pad stack" id="wipe-box">'
+        + '<div class="field"><span class="lbl">'+L.startOver+'</span><span class="hint">'+L.startOverHint+'</span></div>'
         + (ui.pendingDelete==='wipe'
             ? '<div class="row"><button class="btn danger" data-act="wipe">'+L.eraseConfirm+'</button><button class="btn" data-act="cancel-del">'+L.cancel+'</button></div>'
             : '<button class="btn danger wide" data-act="ask-wipe">'+L.eraseAll+'</button>')
       + '</div>';
   }
 
+  /* ================= paid-off prompt ================= */
+  function renderToast(){
+    var box = document.getElementById('toast');
+    var p = ui.toast ? purchaseById(ui.toast) : null;
+    if(!p || p.archived || !stats(p).done){ ui.toast = null; box.hidden = true; box.innerHTML = ''; return; }
+    box.hidden = false;
+    box.innerHTML = '<div class="box" role="status">'
+      + '<span class="msg">✓ '+esc(L.paidOffToast(p.name))+'</span>'
+      + '<button class="btn tiny go" data-act="archive" data-id="'+p.id+'">'+L.removeCompleted+'</button>'
+      + '<button class="btn tiny" data-act="toast-keep">'+L.keepIt+'</button>'
+      + '</div>';
+  }
+
   /* ================= render ================= */
   function render(){
-    document.getElementById('cnt-p').textContent = state.purchases.length ? state.purchases.length : '';
+    var nActive = activePurchases().length;
+    document.getElementById('cnt-p').textContent = nActive ? nActive : '';
     document.getElementById('cnt-c').textContent = state.cards.length ? state.cards.length : '';
-    var views = ['calendar','purchases','cards','data'];
+    var views = ['calendar','purchases','cards','settings'];
     for(var i=0;i<views.length;i++){
       document.getElementById('view-'+views[i]).hidden = (ui.view !== views[i]);
     }
     var tabs = document.querySelectorAll('.tab');
     for(i=0;i<tabs.length;i++) tabs[i].setAttribute('aria-selected', String(tabs[i].dataset.view===ui.view));
+    document.getElementById('btn-gear').setAttribute('aria-pressed', String(ui.view==='settings'));
+    renderToast();
     if(ui.view==='calendar') renderCalendar();
     else if(ui.view==='cards') renderCards();
     else if(ui.view==='purchases') renderPurchases();
-    else renderData();
+    else renderSettings();
   }
 
-  function go(view){ ui.view=view; ui.pendingDelete=null; ui.formErr=''; render(); window.scrollTo(0,0); }
+  function go(view){
+    if(view==='settings' && ui.view!=='settings') ui.prevView = ui.view;
+    ui.view=view; ui.pendingDelete=null; ui.formErr=''; ui.importMsg=''; ui.toast=null;
+    render(); window.scrollTo(0,0);
+  }
 
   /* ================= form draft readers ================= */
   function readCardForm(){
@@ -1297,10 +1483,21 @@ details.disc[open] > summary::before{content:"▾ "}
     var act = el.dataset.act;
 
     if(act==='lang'){
-      if(el.dataset.lang !== L.code){
-        readCardForm(); readPurchaseForm();
-        setLang(el.dataset.lang, true);
-      }
+      if(el.dataset.lang !== L.code){ readCardForm(); readPurchaseForm(); setLang(el.dataset.lang, true); }
+      return;
+    }
+    if(act==='theme'){ lsSet(LS_THEME, el.dataset.theme); applyTheme(); render(); return; }
+    if(act==='open-settings'){ go(ui.view==='settings' ? ui.prevView : 'settings'); return; }
+    if(act==='settings-done'){ go(ui.prevView); return; }
+    if(act==='toast-keep'){ ui.toast=null; render(); return; }
+    if(act==='archive'){
+      var ap = purchaseById(el.dataset.id);
+      if(ap){ ap.archived = true; delete ui.openPurchase[ap.id]; ui.toast=null; save(); render(); }
+      return;
+    }
+    if(act==='restore'){
+      var rp = purchaseById(el.dataset.id);
+      if(rp){ rp.archived = false; save(); render(); }
       return;
     }
 
@@ -1321,6 +1518,8 @@ details.disc[open] > summary::before{content:"▾ "}
         var ix = parseInt(el.dataset.ix,10);
         while(p.paid.length <= ix) p.paid.push(false);
         p.paid[ix] = !p.paid[ix];
+        if(!p.paid[ix] && p.archived) p.archived = false;              // un-paying brings it back to the list
+        if(p.paid[ix] && !p.archived && stats(p).done) ui.toast = p.id;   // just paid off: offer to put it away
         save(); render();
       }
       return;
@@ -1343,6 +1542,7 @@ details.disc[open] > summary::before{content:"▾ "}
       var id = el.dataset.id;
       state.purchases = state.purchases.filter(function(x){ return x.cardId!==id; });
       state.cards = state.cards.filter(function(x){ return x.id!==id; });
+      delete ui.closedCards[id]; saveClosed();
       ui.pendingDelete=null; save(); render(); return;
     }
 
@@ -1372,9 +1572,15 @@ details.disc[open] > summary::before{content:"▾ "}
 
     if(act==='ask-del'){ ui.pendingDelete = el.dataset.target; render(); return; }
     if(act==='cancel-del'){ ui.pendingDelete=null; render(); return; }
-    if(act==='ask-wipe'){ ui.pendingDelete='wipe'; ui.view='data'; render(); window.scrollTo(0,document.body.scrollHeight); return; }
+    if(act==='ask-wipe'){
+      if(ui.view!=='settings') ui.prevView = ui.view;
+      ui.view='settings'; ui.pendingDelete='wipe'; render();
+      var box = document.getElementById('wipe-box'); if(box && box.scrollIntoView) box.scrollIntoView({block:'center'});
+      return;
+    }
     if(act==='wipe'){
       state.cards=[]; state.purchases=[]; ui.seeded=false; ui.pendingDelete=null; ui.importMsg='';
+      ui.closedCards={}; saveClosed();
       lsDel(LS_KEY); save(); go('cards'); return;
     }
 
@@ -1408,9 +1614,6 @@ details.disc[open] > summary::before{content:"▾ "}
       return;
     }
   });
-
-  document.getElementById('btn-theme').addEventListener('click', cycleTheme);
-  document.getElementById('btn-data').addEventListener('click', function(){ ui.importMsg=''; go('data'); });
 
   document.addEventListener('submit', function(ev){
     var form = ev.target;
@@ -1457,6 +1660,7 @@ details.disc[open] > summary::before{content:"▾ "}
 
   document.addEventListener('change', function(ev){
     var id = ev.target.id;
+    if(id==='s-cutoffs'){ settings.showCutoffs = ev.target.checked; saveSettings(); return; }
     if(id==='c-usedates'){
       readCardForm();
       var w = document.getElementById('c-dates');
@@ -1467,12 +1671,28 @@ details.disc[open] > summary::before{content:"▾ "}
     if(id==='p-total' || id==='p-months'){ readPurchaseForm(); render(); return; }
   });
 
+  // Remember which groups / purchases / schedules are open across re-renders.
   document.addEventListener('toggle', function(ev){
     var d = ev.target;
-    if(d && d.tagName==='DETAILS' && d.dataset.pid) ui.openPurchase[d.dataset.pid] = d.open;
+    if(!d || d.tagName!=='DETAILS') return;
+    if(d.dataset.cid==='__done'){
+      ui.closedCards.__done = !d.open;      // the Completed group starts closed
+      saveClosed();
+    } else if(d.dataset.cid){
+      if(d.open) delete ui.closedCards[d.dataset.cid]; else ui.closedCards[d.dataset.cid] = true;
+      saveClosed();
+    } else if(d.dataset.pid){
+      ui.openPurchase[d.dataset.pid] = d.open;
+    } else if(d.dataset.sid){
+      ui.openSchedule[d.dataset.sid] = d.open;
+    }
   }, true);
 
   /* ================= boot ================= */
+  var savedSettings = lsJSON(LS_SETTINGS, {});
+  if(typeof savedSettings.showCutoffs === 'boolean') settings.showCutoffs = savedSettings.showCutoffs;
+  ui.closedCards = lsJSON(LS_CLOSED, {});
+  applyTheme();
   setLang(lsGet(LS_LANG) || 'en', false);
   if(!load()) seed();
   render();
