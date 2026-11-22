@@ -1,7 +1,7 @@
 // Offline support: serve from cache right away, refresh the cache in the background.
 // Bump CACHE when you upload a new version so old files get cleaned up.
-const CACHE = 'cardcal-v1';
-const FILES = ['./', './index.html', './manifest.json', './icon-180.png', './icon-192.png', './icon-512.png'];
+const CACHE = 'cardcal-v2';
+const FILES = ['./', './index.html', './manifest.json', './logo-180.png', './logo-192.png', './logo-512.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)));
