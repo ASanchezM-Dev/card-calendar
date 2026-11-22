@@ -1,0 +1,1487 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#14181F" media="(prefers-color-scheme: dark)">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Card Calendar">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<style>
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+[hidden]{display:none!important}
+img{max-width:100%}
+</style>
+<title>Card Payment Calendar</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: single-column app shell — sticky header + tabs, scrolling content below.
+   Chrome stays neutral on purpose: card color is the only chromatic signal in the UI. */
+:root{
+  --bg:#F5F7FA; --surface:#FFFFFF; --surface-2:#ECEFF4; --surface-3:#E1E6ED;
+  --fg:#111622; --fg-2:#3C4557; --muted:#667085;
+  --border:#DCE1EA; --border-strong:#C3CBD8;
+  --accent:#15497E; --accent-soft:#E6EDF7; --accent-fg:#FFFFFF;
+  --good:#146B45; --good-soft:#E2F2EA;
+  --warn:#8A5706; --warn-soft:#FAF0DB;
+  --bad:#A32B22; --bad-soft:#FBE7E4;
+  --shadow:0 1px 2px rgba(17,22,34,.05), 0 10px 26px -14px rgba(17,22,34,.16);
+  --font-sans:'IBM Plex Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono:'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  --r:10px; --r-lg:14px; --r-sm:7px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0D1017; --surface:#14181F; --surface-2:#1B2029; --surface-3:#242B36;
+    --fg:#E9EDF4; --fg-2:#C2CAD6; --muted:#8E9AAB;
+    --border:#242B36; --border-strong:#36404E;
+    --accent:#7FB0F2; --accent-soft:#17243A; --accent-fg:#0A1220;
+    --good:#55D096; --good-soft:#11291F;
+    --warn:#E0AB52; --warn-soft:#2B2113;
+    --bad:#F2908A; --bad-soft:#2E1715;
+    --shadow:0 1px 2px rgba(0,0,0,.45), 0 10px 26px -14px rgba(0,0,0,.65);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0D1017; --surface:#14181F; --surface-2:#1B2029; --surface-3:#242B36;
+  --fg:#E9EDF4; --fg-2:#C2CAD6; --muted:#8E9AAB;
+  --border:#242B36; --border-strong:#36404E;
+  --accent:#7FB0F2; --accent-soft:#17243A; --accent-fg:#0A1220;
+  --good:#55D096; --good-soft:#11291F;
+  --warn:#E0AB52; --warn-soft:#2B2113;
+  --bad:#F2908A; --bad-soft:#2E1715;
+  --shadow:0 1px 2px rgba(0,0,0,.45), 0 10px 26px -14px rgba(0,0,0,.65);
+  color-scheme:dark;
+}
+
+*{box-sizing:border-box}
+html,body{min-height:100%}
+body{
+  margin:0; background:var(--bg); color:var(--fg);
+  font-family:var(--font-sans); font-size:15px; line-height:1.5;
+  -webkit-text-size-adjust:100%;
+}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:40;background:var(--surface)}
+.inner{
+  width:100%; max-width:760px; margin:0 auto;
+  padding-left:max(16px, env(safe-area-inset-left,0px));
+  padding-right:max(16px, env(safe-area-inset-right,0px));
+}
+h1,h2,h3{margin:0;text-wrap:balance;letter-spacing:-.01em}
+button{font:inherit;color:inherit}
+.num{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* ---------- header + tabs ---------- */
+.topwrap{position:sticky;top:env(safe-area-inset-top,0px);z-index:30;background:var(--surface);border-bottom:1px solid var(--border)}
+.appbar{display:flex;align-items:center;gap:8px;padding-block:11px}
+.brand{display:flex;align-items:baseline;gap:9px;min-width:0;flex:1}
+.brand h1{font-size:16px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.brand .cur{font-family:var(--font-mono);font-size:10.5px;letter-spacing:.09em;color:var(--muted);border:1px solid var(--border);border-radius:999px;padding:2px 6px;flex:none}
+.iconbtn{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  height:34px;min-width:34px;padding:0 9px;flex:none;
+  background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-sm);
+  cursor:pointer;font-size:12.5px;font-weight:500;color:var(--fg-2);
+}
+.iconbtn:hover{background:var(--surface-3);color:var(--fg)}
+.iconbtn svg{width:16px;height:16px;flex:none}
+.langseg{display:flex;flex:none;border:1px solid var(--border);border-radius:var(--r-sm);overflow:hidden}
+.langseg button{
+  background:var(--surface-2);border:0;height:34px;padding:0 8px;cursor:pointer;
+  font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:.06em;color:var(--muted);
+}
+.langseg button:hover{background:var(--surface-3);color:var(--fg)}
+.langseg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-fg)}
+@media (max-width:460px){ .iconbtn .lbl{display:none} .brand .cur{display:none} .iconbtn{padding:0 7px} }
+.tabs{display:flex;gap:2px;padding-bottom:0}
+.tab{
+  flex:1;background:none;border:0;border-bottom:2px solid transparent;
+  padding:9px 4px 10px;cursor:pointer;color:var(--muted);
+  font-size:13px;font-weight:600;letter-spacing:.01em;border-radius:6px 6px 0 0;
+}
+.tab:hover{color:var(--fg-2);background:var(--surface-2)}
+.tab[aria-selected="true"]{color:var(--accent);border-bottom-color:var(--accent)}
+.tab .count{font-family:var(--font-mono);font-size:11px;opacity:.75;margin-left:4px}
+
+main{padding-block:16px 44px}
+
+/* ---------- generic blocks ---------- */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow)}
+.pad{padding:14px}
+.stack{display:flex;flex-direction:column;gap:14px}
+.row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.spread{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.eyebrow{font-family:var(--font-mono);font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--muted)}
+.muted{color:var(--muted)}
+.sm{font-size:12.5px}
+.xs{font-size:11.5px}
+hr.sep{border:0;border-top:1px solid var(--border);margin:0}
+
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  padding:9px 14px;border-radius:var(--r-sm);border:1px solid var(--border-strong);
+  background:var(--surface-2);cursor:pointer;font-size:13.5px;font-weight:600;
+}
+.btn:hover{background:var(--surface-3)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
+.btn.primary:hover{filter:brightness(1.1)}
+.btn.danger{color:var(--bad);border-color:var(--bad)}
+.btn.danger:hover{background:var(--bad-soft)}
+.btn.tiny{padding:5px 9px;font-size:12px;border-radius:6px}
+.btn.wide{width:100%}
+.btn svg{width:15px;height:15px}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+
+.pill{
+  display:inline-flex;align-items:center;gap:5px;padding:2.5px 8px;border-radius:999px;
+  font-size:11px;font-weight:600;letter-spacing:.02em;border:1px solid transparent;
+}
+.pill.msi{background:var(--good-soft);color:var(--good);border-color:color-mix(in srgb,var(--good) 28%, transparent)}
+.pill.mci{background:var(--warn-soft);color:var(--warn);border-color:color-mix(in srgb,var(--warn) 28%, transparent)}
+.pill.direct{background:var(--accent-soft);color:var(--accent);border-color:color-mix(in srgb,var(--accent) 28%, transparent)}
+.pill.done{background:var(--good-soft);color:var(--good)}
+.pill.late{background:var(--bad-soft);color:var(--bad)}
+.pill.ghost{background:var(--surface-2);color:var(--muted);border-color:var(--border)}
+
+.swatch{width:11px;height:11px;border-radius:3px;flex:none;box-shadow:inset 0 0 0 1px rgba(0,0,0,.18)}
+.swatch.lg{width:14px;height:14px;border-radius:4px}
+
+.bar{height:5px;border-radius:999px;background:var(--surface-3);overflow:hidden}
+.bar > i{display:block;height:100%;border-radius:999px;background:var(--accent)}
+
+/* ---------- forms ---------- */
+.field{display:flex;flex-direction:column;gap:5px;min-width:0}
+.field > label{font-size:11.5px;font-weight:600;color:var(--fg-2);letter-spacing:.01em}
+.field .hint{font-size:11px;color:var(--muted)}
+input[type=text],input[type=number],input[type=date],select,textarea{
+  width:100%;padding:9px 10px;font:inherit;font-size:14px;
+  background:var(--surface-2);color:var(--fg);
+  border:1px solid var(--border-strong);border-radius:var(--r-sm);
+}
+input[type=number]{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+textarea{min-height:88px;font-family:var(--font-mono);font-size:12px;line-height:1.5;resize:vertical}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:11px}
+.seg{display:flex;gap:0;border:1px solid var(--border-strong);border-radius:var(--r-sm);overflow:hidden}
+.seg button{flex:1;min-width:0;background:var(--surface-2);border:0;border-right:1px solid var(--border-strong);padding:9px 6px;cursor:pointer;font-size:12.5px;font-weight:600;color:var(--muted)}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-fg)}
+.swatches{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+.swatches button{width:26px;height:26px;border-radius:7px;border:2px solid transparent;cursor:pointer;padding:0}
+.swatches button[aria-pressed="true"]{border-color:var(--fg)}
+input[type=color]{width:34px;height:26px;padding:0;border:1px solid var(--border-strong);border-radius:6px;background:var(--surface-2);cursor:pointer}
+.check{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:500;cursor:pointer}
+.check input{width:17px;height:17px;accent-color:var(--accent);flex:none;margin:0}
+.formerr{color:var(--bad);font-size:12.5px;font-weight:600}
+
+/* ---------- stat tiles ---------- */
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px}
+.tile{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:11px 12px;display:flex;flex-direction:column;gap:3px;min-width:0}
+.tile .k{font-family:var(--font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.tile .v{font-family:var(--font-mono);font-size:19px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.tile .s{font-size:11.5px;color:var(--muted)}
+.tile.flag-bad{border-color:color-mix(in srgb,var(--bad) 45%, var(--border))}
+.tile.flag-bad .v{color:var(--bad)}
+
+/* ---------- calendar ---------- */
+.calhead{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px 12px 10px}
+.calhead h2{font-size:15.5px;font-weight:600}
+.nav{display:flex;gap:5px}
+.nav button{width:32px;height:32px;display:grid;place-items:center;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-sm);cursor:pointer;color:var(--fg-2)}
+.nav button:hover{background:var(--surface-3)}
+.nav button svg{width:15px;height:15px}
+.dow{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;padding:0 10px 4px}
+.dow span{text-align:center;font-family:var(--font-mono);font-size:10px;letter-spacing:.06em;color:var(--muted);text-transform:uppercase}
+.days{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;padding:0 10px 12px}
+.day{
+  position:relative;aspect-ratio:1/1;min-width:0;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  background:transparent;border:1px solid transparent;border-radius:var(--r-sm);
+  cursor:pointer;padding:0;
+}
+.day:hover{background:var(--surface-2)}
+.day .d{font-family:var(--font-mono);font-size:12.5px;font-variant-numeric:tabular-nums;line-height:1;color:var(--fg-2)}
+.day.out{cursor:default}
+.day.out .d{opacity:.3}
+.day.out:hover{background:transparent}
+.day.today{border-color:var(--border-strong)}
+.day.today .d{font-weight:700;color:var(--fg)}
+.day.has{background:var(--surface-2)}
+.day.late{background:var(--bad-soft);border-color:color-mix(in srgb,var(--bad) 35%, transparent)}
+.day[aria-pressed="true"]{background:var(--accent);border-color:var(--accent)}
+.day[aria-pressed="true"] .d{color:var(--accent-fg);font-weight:700}
+.dots{display:flex;gap:2px;height:5px;align-items:center}
+.dots i{width:5px;height:5px;border-radius:999px;display:block;box-shadow:inset 0 0 0 1px rgba(0,0,0,.2)}
+.dots i.hollow{box-shadow:inset 0 0 0 1.5px currentColor;background:transparent!important}
+.day[aria-pressed="true"] .dots i{box-shadow:inset 0 0 0 1px rgba(255,255,255,.65)}
+
+/* ---------- lists ---------- */
+.item{display:flex;flex-direction:column;gap:9px;padding:13px 14px;border-top:1px solid var(--border)}
+.item:first-child{border-top:0}
+.item .title{font-size:14px;font-weight:600;min-width:0;overflow-wrap:anywhere}
+.amount{font-family:var(--font-mono);font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap}
+.amount.big{font-size:16px}
+.kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(104px,1fr));gap:8px 12px}
+.kv div{min-width:0}
+.kv .k{font-size:10.5px;font-family:var(--font-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);display:block}
+.kv .v{font-family:var(--font-mono);font-size:13px;font-variant-numeric:tabular-nums;font-weight:500}
+.cardstrip{display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--surface-2);border-top:1px solid var(--border)}
+.cardstrip:first-child{border-top:0}
+.cardstrip .nm{font-size:12.5px;font-weight:700;letter-spacing:.01em;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.empty{padding:30px 16px;text-align:center;color:var(--muted);font-size:13.5px}
+.empty strong{display:block;color:var(--fg);font-size:15px;font-weight:600;margin-bottom:5px}
+
+.inst{display:flex;align-items:center;gap:10px;padding:8px 14px;border-top:1px solid var(--border);font-size:13px}
+.inst .ix{font-family:var(--font-mono);font-size:10.5px;color:var(--muted);width:34px;flex:none}
+.inst .dt{font-family:var(--font-mono);font-size:12px;font-variant-numeric:tabular-nums;flex:1;min-width:0}
+.inst.ispaid .dt,.inst.ispaid .amount{color:var(--muted);text-decoration:line-through}
+.inst.islate .dt{color:var(--bad);font-weight:600}
+.inst button{flex:none}
+
+.banner{display:flex;gap:10px;align-items:flex-start;padding:11px 13px;border-radius:var(--r);background:var(--accent-soft);border:1px solid color-mix(in srgb,var(--accent) 25%, transparent);font-size:12.5px;line-height:1.45}
+.banner .btn{flex:none}
+.confirm{display:flex;align-items:center;gap:8px;padding:9px 13px;background:var(--bad-soft);border-top:1px solid var(--border);font-size:12.5px;font-weight:600;color:var(--bad);flex-wrap:wrap}
+
+details.disc > summary{cursor:pointer;padding:9px 14px;font-size:12.5px;font-weight:600;color:var(--accent);border-top:1px solid var(--border);list-style:none}
+details.disc > summary::-webkit-details-marker{display:none}
+details.disc > summary::before{content:"▸ ";font-size:10px}
+details.disc[open] > summary::before{content:"▾ "}
+</style>
+</head>
+<body>
+<div class="topwrap">
+  <div class="inner">
+    <div class="appbar">
+      <div class="brand">
+        <h1 id="app-title">Card Payment Calendar</h1>
+        <span class="cur">MXN</span>
+      </div>
+      <div class="langseg" id="langseg">
+        <button type="button" data-act="lang" data-lang="en">EN</button>
+        <button type="button" data-act="lang" data-lang="es">ES</button>
+      </div>
+      <button class="iconbtn" id="btn-theme" type="button"></button>
+      <button class="iconbtn" id="btn-data" type="button"></button>
+    </div>
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" data-view="calendar" aria-selected="true"></button>
+      <button class="tab" role="tab" data-view="purchases" aria-selected="false"><span class="lbl"></span><span class="count" id="cnt-p"></span></button>
+      <button class="tab" role="tab" data-view="cards" aria-selected="false"><span class="lbl"></span><span class="count" id="cnt-c"></span></button>
+    </div>
+  </div>
+</div>
+
+<main>
+  <div class="inner">
+    <section id="view-calendar" class="stack"></section>
+    <section id="view-purchases" class="stack" hidden></section>
+    <section id="view-cards" class="stack" hidden></section>
+    <section id="view-data" class="stack" hidden></section>
+  </div>
+</main>
+
+<script>
+(function(){
+  'use strict';
+
+  /* ================= storage ================= */
+  var LS_KEY = 'cardpaycal.v1';
+  var LS_THEME = 'cardpaycal.theme';
+  var LS_LANG = 'cardpaycal.lang';
+
+  function lsGet(k){ try { return window.localStorage.getItem(k); } catch(e){ return null; } }
+  function lsSet(k,v){ try { window.localStorage.setItem(k,v); return true; } catch(e){ return false; } }
+  function lsDel(k){ try { window.localStorage.removeItem(k); } catch(e){} }
+
+  /* ================= money ================= */
+  var MX = new Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN',minimumFractionDigits:2,maximumFractionDigits:2});
+  var MX0 = new Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN',minimumFractionDigits:0,maximumFractionDigits:0});
+  function money(n){ return MX.format(Number(n)||0); }
+  function money0(n){ return MX0.format(Math.round(Number(n)||0)); }
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]; }); }
+
+  /* =====================================================================
+     Two hand-written language packs. Nothing is machine-translated at
+     runtime — switching simply swaps which pack the UI reads from.
+     ===================================================================== */
+  var STR = {
+    en: {
+      code:'en',
+      months:['January','February','March','April','May','June','July','August','September','October','November','December'],
+      mon:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+      dow:['Mo','Tu','We','Th','Fr','Sa','Su'],
+      ord: function(n){ var s=['th','st','nd','rd'], v=n%100; return n+(s[(v-20)%10]||s[v]||s[0]); },
+      fmtDate: function(d){ return this.mon[d.getMonth()]+' '+d.getDate()+', '+d.getFullYear(); },
+      fmtShort: function(d){ return this.mon[d.getMonth()]+' '+d.getDate(); },
+      fmtLong: function(d){ return this.mon[d.getMonth()]+' '+d.getDate()+', '+d.getFullYear(); },
+      fmtMonth: function(d){ return this.mon[d.getMonth()]+' '+d.getFullYear(); },
+      rel: function(n){
+        if(n===0) return 'today';
+        if(n===1) return 'tomorrow';
+        if(n===-1) return 'yesterday';
+        return n>0 ? 'in '+n+' days' : Math.abs(n)+' days ago';
+      },
+
+      appTitle:'Card Payment Calendar',
+      langTitle:'Language',
+      themeLabel:{system:'Auto', light:'Light', dark:'Dark'},
+      themeTitle: function(l){ return 'Theme: '+l+' — tap to change'; },
+      backup:'Backup',
+      tabCalendar:'Calendar', tabPurchases:'Purchases', tabCards:'Cards',
+
+      noCardsTitle:'No cards yet',
+      noCardsBody:'Add a card first, then log the purchases on it. Nothing here is a real card number — just a name and a color.',
+      addFirstCard:'Add your first card',
+      exampleBanner:'These cards and purchases are <strong>examples</strong> so you can see how it works. Clear them when you want to start on your own numbers.',
+      clearExamples:'Clear examples',
+
+      tTotalRemaining:'Total remaining',
+      tTracked: function(n){ return n+' purchase'+(n===1?'':'s')+' tracked'; },
+      tDueIn: function(m,y){ return 'Due in '+m+' '+y; },
+      tAlreadyPaid: function(a){ return a+' already paid'; },
+      tAcrossCards:'across all cards',
+      tPastDue:'Past due',
+      tNotMarked: function(n){ return n+' payment'+(n===1?'':'s')+' not marked paid'; },
+      tNextPayment:'Next payment',
+      tAllPaid:'everything is paid off',
+
+      prevMonth:'Previous month', nextMonth:'Next month', today:'Today',
+      cardTotals: function(m,y){ return 'Card totals · '+m+' '+y; },
+      paidChip: function(a){ return a+' paid'; },
+
+      selectedDay:'Selected day',
+      noPaymentsDay:'No payments due on this day.',
+      cardTotal:'card total',
+      paymentXofY: function(i,n){ return 'Payment '+i+' of '+n; },
+      paidPill:'Paid', pastDuePill:'Past due',
+      leftAfterThis:'Left after this', paymentsLeft:'Payments left', paidOffK:'Paid off',
+      markPaid:'Mark this payment paid', markUnpaid:'Mark unpaid',
+
+      payoffCountdown:'Payoff countdown',
+      nothingOutstanding:'Nothing outstanding. Every payment is marked paid.',
+      debtFree:'Debt-free',
+
+      newCard:'New card', editCard:'Edit card', cancel:'Cancel',
+      cardName:'Card name', cardNamePh:'Everyday Card',
+      cardNameHint:'Just a label. Never enter a real card number here.',
+      color:'Color', customColor:'Custom color',
+      useDates:'Use statement cutoff &amp; payment due dates',
+      cutoffDay:'Statement cutoff day', cutoffHint:'Day the statement closes.',
+      dueDay:'Payment due day', dueHint:'Day the payment must land.',
+      noDatesHint:'With these turned off, payments are scheduled one month after the purchase date, on the same day of the month.',
+      saveCard:'Save card', addCard:'Add card', newCardBtn:'+ New card',
+      noCards:'No cards',
+      noCardsBody2:'A card here is only a name, a color and, if you want, its cutoff and payment due days.',
+      statement:'Statement', monthlyLoad:'Monthly load', openPurchases:'Open purchases',
+      edit:'Edit', del:'Delete',
+      confirmDelCard: function(name,n){ return 'Delete “'+name+'”'+(n?' and its '+n+' purchase'+(n===1?'':'s'):'')+'?'; },
+      yesDelete:'Yes, delete', keepIt:'Keep it',
+      noStatementDates:'No statement dates',
+      cutoffDue: function(a,b){ return 'Cutoff '+a+' · Due '+b; },
+
+      addCardFirst:'Add a card first', addCardFirstBody:'Every purchase belongs to a card.',
+      goToCards:'Go to Cards',
+      newPurchase:'New purchase', editPurchase:'Edit purchase',
+      whatBuy:'What did you buy?', purchasePh:'Laptop',
+      cardLbl:'Card', plan:'Plan', onePayment:'One payment',
+      typeMsi:'Interest-free months (MSI)', typeMci:'Months with interest (MCI)', typeDirect:'Single payment',
+      amountMsi:'Total amount (no interest)', amountMci:'Total amount including interest', amountDirect:'Amount',
+      hintMsi:'The sticker price. Split evenly across the months.',
+      hintMci:'Use the “total to pay” the store or bank shows you — it already has the interest baked in.',
+      hintDirect:'Charged in full on the next statement.',
+      months_:'Months', perMonth: function(a){ return a+' per month'; }, monthsHint:'e.g. 3, 6, 12, 18',
+      purchaseDate:'Purchase date',
+      note:'Note', optional:'(optional)', notePh:'Interest rate, store, who owes what…',
+      savePurchase:'Save purchase', addPurchase:'Add purchase', newPurchaseBtn:'+ New purchase',
+      noPurchases:'No purchases yet',
+      noPurchasesBody:'Log what you bought, whether it is MSI, MCI or a single payment, and the calendar fills itself in.',
+      paidOffPill:'Paid off',
+      nPastDue: function(n){ return n+' past due'; },
+      leftOf: function(t){ return 'left of '+t; },
+      bought:'Bought', progress:'Progress',
+      paymentSchedule: function(n){ return 'Payment schedule ('+n+')'; },
+      pay:'Pay', undo:'Undo',
+      confirmDelPurchase: function(name){ return 'Delete “'+name+'”?'; },
+
+      backupTitle:'Backup', done:'Done',
+      backupIntro:'Your data lives in this browser on this device. It survives closing the page and restarting the phone, but not clearing Safari or switching phones — so copy this text somewhere safe (Notes, email to yourself) when it matters.',
+      exportLbl:'Export — copy this', copyBtn:'Copy to clipboard',
+      copied:'Copied.', copyFail:'Could not copy — the text is selected, copy it manually.',
+      importLbl:'Import — paste a backup here',
+      importHint:'This replaces everything currently in the app.',
+      importBtn:'Replace my data with this',
+      imported: function(c,p){ return 'Imported '+c+' card'+(c===1?'':'s')+' and '+p+' purchase'+(p===1?'':'s')+'.'; },
+      importErr:'That is not a valid backup. Paste the whole block of text, curly braces included.',
+      startOver:'Start over', startOverHint:'Removes every card and purchase from this device.',
+      eraseAll:'Erase all data', eraseConfirm:'Yes, erase everything',
+
+      errCardName:'Give the card a name.',
+      errSameDay:'The cutoff day and the payment due day cannot be the same.',
+      errPurchaseName:'Name the purchase.',
+      errPickCard:'Pick a card.',
+      errAmount:'Enter an amount greater than zero.',
+      errMonths:'Months must be between 1 and 120.',
+
+      seed:{ c1:'Everyday Card', c2:'Travel Card',
+             p1:'Laptop', p2:'Washing machine', p3:'Headphones', p4:'Flight tickets',
+             n1:'Example — delete me', n2:'Example', n3:'Example — total already includes interest', n4:'Example' }
+    },
+
+    es: {
+      code:'es',
+      months:['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'],
+      mon:['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'],
+      dow:['Lu','Ma','Mi','Ju','Vi','Sá','Do'],
+      ord: function(n){ return String(n); },
+      fmtDate: function(d){ return d.getDate()+' '+this.mon[d.getMonth()]+' '+d.getFullYear(); },
+      fmtShort: function(d){ return d.getDate()+' '+this.mon[d.getMonth()]; },
+      fmtLong: function(d){ return d.getDate()+' de '+this.months[d.getMonth()].toLowerCase()+', '+d.getFullYear(); },
+      fmtMonth: function(d){ return this.mon[d.getMonth()]+' '+d.getFullYear(); },
+      rel: function(n){
+        if(n===0) return 'hoy';
+        if(n===1) return 'mañana';
+        if(n===-1) return 'ayer';
+        return n>0 ? 'en '+n+' días' : 'hace '+Math.abs(n)+' días';
+      },
+
+      appTitle:'Calendario de Pagos',
+      langTitle:'Idioma',
+      themeLabel:{system:'Auto', light:'Claro', dark:'Oscuro'},
+      themeTitle: function(l){ return 'Tema: '+l+' — toca para cambiar'; },
+      backup:'Respaldo',
+      tabCalendar:'Calendario', tabPurchases:'Compras', tabCards:'Tarjetas',
+
+      noCardsTitle:'Aún no hay tarjetas',
+      noCardsBody:'Agrega una tarjeta primero y luego registra sus compras. Aquí nunca va un número de tarjeta real — solo un nombre y un color.',
+      addFirstCard:'Agrega tu primera tarjeta',
+      exampleBanner:'Estas tarjetas y compras son <strong>ejemplos</strong> para que veas cómo funciona. Bórralos cuando quieras empezar con tus propios números.',
+      clearExamples:'Borrar ejemplos',
+
+      tTotalRemaining:'Deuda total',
+      tTracked: function(n){ return n+' compra'+(n===1?'':'s')+' registrada'+(n===1?'':'s'); },
+      tDueIn: function(m,y){ return 'A pagar en '+m+' '+y; },
+      tAlreadyPaid: function(a){ return a+' ya pagado'; },
+      tAcrossCards:'de todas las tarjetas',
+      tPastDue:'Vencido',
+      tNotMarked: function(n){ return n+' pago'+(n===1?'':'s')+' sin marcar'; },
+      tNextPayment:'Próximo pago',
+      tAllPaid:'todo está pagado',
+
+      prevMonth:'Mes anterior', nextMonth:'Mes siguiente', today:'Hoy',
+      cardTotals: function(m,y){ return 'Total por tarjeta · '+m+' '+y; },
+      paidChip: function(a){ return a+' pagado'; },
+
+      selectedDay:'Día seleccionado',
+      noPaymentsDay:'No hay pagos este día.',
+      cardTotal:'total de la tarjeta',
+      paymentXofY: function(i,n){ return 'Pago '+i+' de '+n; },
+      paidPill:'Pagado', pastDuePill:'Vencido',
+      leftAfterThis:'Resta después', paymentsLeft:'Pagos restantes', paidOffK:'Se liquida',
+      markPaid:'Marcar este pago como pagado', markUnpaid:'Desmarcar',
+
+      payoffCountdown:'Cuenta regresiva',
+      nothingOutstanding:'No debes nada. Todos los pagos están marcados.',
+      debtFree:'Libre de deuda',
+
+      newCard:'Nueva tarjeta', editCard:'Editar tarjeta', cancel:'Cancelar',
+      cardName:'Nombre de la tarjeta', cardNamePh:'Tarjeta principal',
+      cardNameHint:'Es solo una etiqueta. Nunca pongas aquí un número de tarjeta real.',
+      color:'Color', customColor:'Color personalizado',
+      useDates:'Usar fecha de corte y fecha límite de pago',
+      cutoffDay:'Día de corte', cutoffHint:'Día en que cierra el estado de cuenta.',
+      dueDay:'Día límite de pago', dueHint:'Día en que debe caer el pago.',
+      noDatesHint:'Si las apagas, los pagos se programan un mes después de la compra, el mismo día del mes.',
+      saveCard:'Guardar tarjeta', addCard:'Agregar tarjeta', newCardBtn:'+ Nueva tarjeta',
+      noCards:'Sin tarjetas',
+      noCardsBody2:'Una tarjeta aquí es solo un nombre, un color y, si quieres, sus días de corte y de pago.',
+      statement:'Corte', monthlyLoad:'Carga mensual', openPurchases:'Compras abiertas',
+      edit:'Editar', del:'Eliminar',
+      confirmDelCard: function(name,n){ return '¿Eliminar “'+name+'”'+(n?' y sus '+n+' compra'+(n===1?'':'s'):'')+'?'; },
+      yesDelete:'Sí, eliminar', keepIt:'Conservar',
+      noStatementDates:'Sin fechas de corte',
+      cutoffDue: function(a,b){ return 'Corte '+a+' · Pago '+b; },
+
+      addCardFirst:'Agrega una tarjeta primero', addCardFirstBody:'Cada compra pertenece a una tarjeta.',
+      goToCards:'Ir a Tarjetas',
+      newPurchase:'Nueva compra', editPurchase:'Editar compra',
+      whatBuy:'¿Qué compraste?', purchasePh:'Laptop',
+      cardLbl:'Tarjeta', plan:'Plan', onePayment:'Un pago',
+      typeMsi:'Meses sin intereses (MSI)', typeMci:'Meses con intereses (MCI)', typeDirect:'Pago único',
+      amountMsi:'Monto total (sin intereses)', amountMci:'Monto total con intereses', amountDirect:'Monto',
+      hintMsi:'El precio de lista. Se reparte en partes iguales entre los meses.',
+      hintMci:'Usa el “total a pagar” que te muestra la tienda o el banco — ese ya trae los intereses incluidos.',
+      hintDirect:'Se cobra completo en el siguiente estado de cuenta.',
+      months_:'Meses', perMonth: function(a){ return a+' al mes'; }, monthsHint:'ej. 3, 6, 12, 18',
+      purchaseDate:'Fecha de compra',
+      note:'Nota', optional:'(opcional)', notePh:'Tasa de interés, tienda, quién debe qué…',
+      savePurchase:'Guardar compra', addPurchase:'Agregar compra', newPurchaseBtn:'+ Nueva compra',
+      noPurchases:'Aún no hay compras',
+      noPurchasesBody:'Registra lo que compraste, si es a MSI, MCI o un solo pago, y el calendario se llena solo.',
+      paidOffPill:'Liquidada',
+      nPastDue: function(n){ return n+' vencido'+(n===1?'':'s'); },
+      leftOf: function(t){ return 'de '+t; },
+      bought:'Comprado', progress:'Progreso',
+      paymentSchedule: function(n){ return 'Calendario de pagos ('+n+')'; },
+      pay:'Pagar', undo:'Deshacer',
+      confirmDelPurchase: function(name){ return '¿Eliminar “'+name+'”?'; },
+
+      backupTitle:'Respaldo', done:'Listo',
+      backupIntro:'Tus datos viven en este navegador, en este dispositivo. Sobreviven cerrar la página y apagar el celular, pero no borrar Safari ni cambiar de teléfono — así que copia este texto a un lugar seguro (Notas, un correo a ti mismo) cuando te importe.',
+      exportLbl:'Exportar — copia esto', copyBtn:'Copiar al portapapeles',
+      copied:'Copiado.', copyFail:'No se pudo copiar — el texto está seleccionado, cópialo a mano.',
+      importLbl:'Importar — pega aquí un respaldo',
+      importHint:'Esto reemplaza todo lo que hay ahora en la app.',
+      importBtn:'Reemplazar mis datos con esto',
+      imported: function(c,p){ return 'Se importaron '+c+' tarjeta'+(c===1?'':'s')+' y '+p+' compra'+(p===1?'':'s')+'.'; },
+      importErr:'Ese no es un respaldo válido. Pega el bloque de texto completo, con llaves y todo.',
+      startOver:'Empezar de nuevo', startOverHint:'Borra todas las tarjetas y compras de este dispositivo.',
+      eraseAll:'Borrar todos los datos', eraseConfirm:'Sí, borrar todo',
+
+      errCardName:'Ponle un nombre a la tarjeta.',
+      errSameDay:'El día de corte y el día límite de pago no pueden ser el mismo.',
+      errPurchaseName:'Ponle nombre a la compra.',
+      errPickCard:'Elige una tarjeta.',
+      errAmount:'Escribe un monto mayor que cero.',
+      errMonths:'Los meses deben estar entre 1 y 120.',
+
+      seed:{ c1:'Tarjeta principal', c2:'Tarjeta de viajes',
+             p1:'Laptop', p2:'Lavadora', p3:'Audífonos', p4:'Vuelos',
+             n1:'Ejemplo — bórrame', n2:'Ejemplo', n3:'Ejemplo — el total ya incluye intereses', n4:'Ejemplo' }
+    }
+  };
+
+  var L = STR.en;   // active language pack
+
+  /* ================= dates ================= */
+  function today(){ var n=new Date(); return new Date(n.getFullYear(),n.getMonth(),n.getDate(),12,0,0,0); }
+  function mkDate(y,m,d){ return new Date(y,m,d,12,0,0,0); }
+  function lastDay(y,m){ return new Date(y,m+1,0).getDate(); }
+  function clampDay(y,m,day){ return Math.min(Math.max(1,day|0), lastDay(y,m)); }
+  function shiftMonth(y,m,by){ var t=new Date(y,m+by,1); return {y:t.getFullYear(), m:t.getMonth()}; }
+  function dayOn(y,m,day){ return mkDate(y,m,clampDay(y,m,day)); }
+  function parseISO(s){
+    var p=/^(\d{4})-(\d{2})-(\d{2})$/.exec(String(s||''));
+    if(!p) return today();
+    return mkDate(+p[1], +p[2]-1, +p[3]);
+  }
+  function toISO(d){
+    var m=d.getMonth()+1, dd=d.getDate();
+    return d.getFullYear()+'-'+(m<10?'0':'')+m+'-'+(dd<10?'0':'')+dd;
+  }
+  function dayKey(d){ return toISO(d); }
+  function daysBetween(a,b){ return Math.round((b-a)/86400000); }
+  function round2(n){ return Math.round((Number(n)||0)*100)/100; }
+
+  // language-aware wrappers
+  function fmtDate(d){ return L.fmtDate(d); }
+  function fmtShort(d){ return L.fmtShort(d); }
+  function fmtLong(d){ return L.fmtLong(d); }
+  function fmtMonth(d){ return L.fmtMonth(d); }
+  function ord(n){ return L.ord(n); }
+  function relDay(d){ return L.rel(daysBetween(today(), d)); }
+
+  /* ================= model ================= */
+  var PALETTE = ['#2F6FD0','#1E8E6A','#C2622A','#8A4FBF','#C23A6B','#2A8FA8','#7A8A1F','#4A5568'];
+
+  var state = { cards:[], purchases:[] };
+  var ui = {
+    view:'calendar',
+    calY: today().getFullYear(),
+    calM: today().getMonth(),
+    selected: dayKey(today()),
+    cardForm:null,
+    purchaseForm:null,
+    pendingDelete:null,
+    openPurchase:{},
+    seeded:false,
+    importMsg:'', importOk:false,
+    formErr:''
+  };
+
+  function uid(){ return Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-4); }
+  function cardById(id){ for(var i=0;i<state.cards.length;i++){ if(state.cards[i].id===id) return state.cards[i]; } return null; }
+  function purchaseById(id){ for(var i=0;i<state.purchases.length;i++){ if(state.purchases[i].id===id) return state.purchases[i]; } return null; }
+
+  function save(){
+    lsSet(LS_KEY, JSON.stringify({v:1, seeded:ui.seeded, cards:state.cards, purchases:state.purchases}));
+  }
+  function load(){
+    var raw = lsGet(LS_KEY);
+    if(!raw) return false;
+    try{
+      var o = JSON.parse(raw);
+      if(!o || !Array.isArray(o.cards) || !Array.isArray(o.purchases)) return false;
+      state.cards = o.cards.map(normCard);
+      state.purchases = o.purchases.map(normPurchase).filter(function(p){ return !!p; });
+      ui.seeded = !!o.seeded;
+      return true;
+    }catch(e){ return false; }
+  }
+
+  function normCard(c){
+    c = c||{};
+    return {
+      id: c.id || uid(),
+      name: String(c.name||'Card').slice(0,40),
+      color: /^#[0-9a-fA-F]{6}$/.test(c.color||'') ? c.color : PALETTE[0],
+      useDates: !!c.useDates,
+      cutoffDay: c.cutoffDay ? Math.min(31,Math.max(1,c.cutoffDay|0)) : null,
+      dueDay: c.dueDay ? Math.min(31,Math.max(1,c.dueDay|0)) : null
+    };
+  }
+  function normPurchase(p){
+    p = p||{};
+    if(!p.cardId) return null;
+    var type = (p.type==='mci'||p.type==='direct') ? p.type : 'msi';
+    var months = type==='direct' ? 1 : Math.min(120, Math.max(1, p.months|0 || 1));
+    var paid = Array.isArray(p.paid) ? p.paid.slice(0,months).map(Boolean) : [];
+    while(paid.length<months) paid.push(false);
+    return {
+      id: p.id || uid(),
+      cardId: p.cardId,
+      name: String(p.name||'Purchase').slice(0,80),
+      note: String(p.note||'').slice(0,200),
+      type: type,
+      total: round2(p.total),
+      months: months,
+      date: /^\d{4}-\d{2}-\d{2}$/.test(p.date||'') ? p.date : toISO(today()),
+      paid: paid
+    };
+  }
+
+  /* ================= schedule engine =================
+     First payment:
+       Card has statement dates  -> find the first cutoff strictly after the purchase date;
+                                    the payment falls on the card's due day for that statement
+                                    (same month if due day > cutoff day, otherwise the next month).
+       No statement dates        -> one month after the purchase, on the same day of the month.
+     Later payments: same day of the month, one month apart. Short months clamp to the last day.
+     Amounts: total / months, with the final payment absorbing the rounding remainder,
+     so the installments always add up to the total exactly.
+  */
+  function firstDue(card, pDate){
+    if(card && card.useDates && card.cutoffDay && card.dueDay){
+      var y=pDate.getFullYear(), m=pDate.getMonth();
+      var cut = dayOn(y,m,card.cutoffDay);
+      if(cut <= pDate){ var s=shiftMonth(y,m,1); y=s.y; m=s.m; cut=dayOn(y,m,card.cutoffDay); }
+      var dy=cut.getFullYear(), dm=cut.getMonth();
+      if(card.dueDay <= card.cutoffDay){ var s2=shiftMonth(dy,dm,1); dy=s2.y; dm=s2.m; }
+      return { date: dayOn(dy,dm,card.dueDay), day: card.dueDay };
+    }
+    var s3 = shiftMonth(pDate.getFullYear(), pDate.getMonth(), 1);
+    return { date: dayOn(s3.y, s3.m, pDate.getDate()), day: pDate.getDate() };
+  }
+
+  function schedule(p){
+    var card = cardById(p.cardId);
+    var n = p.type==='direct' ? 1 : Math.max(1, p.months|0);
+    var f = firstDue(card, parseISO(p.date));
+    var per = round2(p.total / n);
+    var out=[], acc=0;
+    for(var i=0;i<n;i++){
+      var amt = (i===n-1) ? round2(p.total - acc) : per;
+      acc = round2(acc + amt);
+      var mm = shiftMonth(f.date.getFullYear(), f.date.getMonth(), i);
+      out.push({ i:i, date: dayOn(mm.y, mm.m, f.day), amount: amt, paid: !!p.paid[i] });
+    }
+    return out;
+  }
+
+  function stats(p){
+    var sch = schedule(p);
+    var paidAmt=0, left=[], k;
+    for(k=0;k<sch.length;k++){ if(sch[k].paid) paidAmt=round2(paidAmt+sch[k].amount); else left.push(sch[k]); }
+    var t = today(), overdue=0, overdueAmt=0;
+    for(k=0;k<left.length;k++){ if(left[k].date < t){ overdue++; overdueAmt=round2(overdueAmt+left[k].amount); } }
+    return {
+      sch: sch, n: sch.length, monthly: sch[0] ? sch[0].amount : 0,
+      paidAmt: paidAmt, remaining: round2(p.total - paidAmt),
+      paidCount: sch.length-left.length, monthsLeft: left.length,
+      nextDue: left.length ? left[0].date : null,
+      nextAmt: left.length ? left[0].amount : 0,
+      payoff: sch.length ? sch[sch.length-1].date : null,
+      overdue: overdue, overdueAmt: overdueAmt,
+      done: left.length===0
+    };
+  }
+
+  function allEvents(){
+    var out=[];
+    for(var i=0;i<state.purchases.length;i++){
+      var p = state.purchases[i], card = cardById(p.cardId);
+      if(!card) continue;
+      var sch = schedule(p);
+      for(var j=0;j<sch.length;j++){
+        var after=0, leftAfter=0;
+        for(var k=j+1;k<sch.length;k++){ after=round2(after+sch[k].amount); if(!sch[k].paid) leftAfter++; }
+        out.push({
+          purchase:p, card:card, idx:j, n:sch.length,
+          date:sch[j].date, key:dayKey(sch[j].date), amount:sch[j].amount, paid:sch[j].paid,
+          balanceAfter:after, paymentsAfter:leftAfter, payoff:sch[sch.length-1].date
+        });
+      }
+    }
+    out.sort(function(a,b){ return a.date-b.date || a.card.name.localeCompare(b.card.name); });
+    return out;
+  }
+
+  /* ================= seed example data ================= */
+  function seed(){
+    var t = today(), S = L.seed;
+    var c1 = normCard({ id:uid(), name:S.c1, color:PALETTE[0], useDates:true, cutoffDay:5, dueDay:25 });
+    var c2 = normCard({ id:uid(), name:S.c2, color:PALETTE[2], useDates:false });
+    state.cards = [c1,c2];
+    function back(months, day){
+      var s = shiftMonth(t.getFullYear(), t.getMonth(), -months);
+      return toISO(dayOn(s.y, s.m, day));
+    }
+    state.purchases = [
+      normPurchase({ id:uid(), cardId:c1.id, name:S.p1, note:S.n1, type:'msi', total:24000, months:12, date:back(4,8), paid:[true,true,true,false] }),
+      normPurchase({ id:uid(), cardId:c1.id, name:S.p2, note:S.n2, type:'msi', total:9000, months:18, date:back(2,14), paid:[true,false] }),
+      normPurchase({ id:uid(), cardId:c1.id, name:S.p3, note:S.n3, type:'mci', total:4800, months:6, date:back(1,20), paid:[true] }),
+      normPurchase({ id:uid(), cardId:c2.id, name:S.p4, note:S.n4, type:'direct', total:3250, months:1, date:back(0,3), paid:[false] })
+    ];
+    ui.seeded = true;
+    save();
+  }
+
+  /* ================= language ================= */
+  function setLang(code, redraw){
+    L = (code==='es') ? STR.es : STR.en;
+    lsSet(LS_LANG, L.code);
+    document.documentElement.lang = L.code;
+    document.title = L.appTitle;
+    document.getElementById('app-title').textContent = L.appTitle;
+    document.getElementById('langseg').title = L.langTitle;
+    var lb = document.querySelectorAll('#langseg button');
+    for(var i=0;i<lb.length;i++) lb[i].setAttribute('aria-pressed', String(lb[i].dataset.lang===L.code));
+    var tabs = document.querySelectorAll('.tab');
+    tabs[0].textContent = L.tabCalendar;
+    tabs[1].querySelector('.lbl').textContent = L.tabPurchases;
+    tabs[2].querySelector('.lbl').textContent = L.tabCards;
+    document.getElementById('btn-data').innerHTML =
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>'
+      + '<span class="lbl">'+L.backup+'</span>';
+    document.getElementById('btn-data').title = L.backupTitle;
+    applyTheme();
+    if(redraw) render();
+  }
+
+  /* ================= theme ================= */
+  function applyTheme(){
+    var pref = lsGet(LS_THEME) || 'system';
+    var root = document.documentElement;
+    if(pref==='light' || pref==='dark') root.setAttribute('data-theme', pref);
+    else root.removeAttribute('data-theme');
+    var icons = {
+      system:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>',
+      light:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5L19 19M19 5l-1.5 1.5M6.5 17.5L5 19"/></svg>',
+      dark:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>'
+    };
+    var label = L.themeLabel[pref];
+    var b = document.getElementById('btn-theme');
+    b.innerHTML = icons[pref] + '<span class="lbl">'+label+'</span>';
+    b.title = L.themeTitle(label);
+  }
+  function cycleTheme(){
+    var order=['system','light','dark'];
+    var cur = lsGet(LS_THEME) || 'system';
+    lsSet(LS_THEME, order[(order.indexOf(cur)+1) % 3]);
+    applyTheme();
+  }
+
+  /* ================= small view helpers ================= */
+  function typePill(t){
+    if(t==='msi') return '<span class="pill msi">MSI</span>';
+    if(t==='mci') return '<span class="pill mci">MCI</span>';
+    return '<span class="pill direct">'+L.onePayment+'</span>';
+  }
+  function typeName(t){ return t==='msi' ? L.typeMsi : t==='mci' ? L.typeMci : L.typeDirect; }
+  function dot(color, hollow){ return '<i style="background:'+esc(color)+';color:'+esc(color)+'" class="'+(hollow?'hollow':'')+'"></i>'; }
+  function cardDatesLabel(c){
+    if(!c.useDates || !c.cutoffDay || !c.dueDay) return L.noStatementDates;
+    return L.cutoffDue(ord(c.cutoffDay), ord(c.dueDay));
+  }
+  function tile(k,v,s,bad){
+    return '<div class="tile'+(bad?' flag-bad':'')+'"><span class="k">'+esc(k)+'</span><span class="v">'+v+'</span><span class="s">'+esc(s)+'</span></div>';
+  }
+
+  /* ================= CALENDAR VIEW ================= */
+  function renderCalendar(){
+    var el = document.getElementById('view-calendar');
+    var ev = allEvents();
+    var t = today();
+
+    if(!state.cards.length){
+      el.innerHTML = '<div class="card empty"><strong>'+L.noCardsTitle+'</strong>'+L.noCardsBody+'</div>'
+        + '<button class="btn primary wide" data-act="goto" data-view="cards">'+L.addFirstCard+'</button>';
+      return;
+    }
+
+    var totalRemaining=0, overdueAmt=0, overdueCount=0, monthDue=0, monthPaid=0;
+    var byCardMonth = {}, byDay = {};
+    for(var i=0;i<ev.length;i++){
+      var e = ev[i];
+      if(!e.paid){
+        totalRemaining = round2(totalRemaining + e.amount);
+        if(e.date < t){ overdueAmt = round2(overdueAmt + e.amount); overdueCount++; }
+      }
+      if(e.date.getFullYear()===ui.calY && e.date.getMonth()===ui.calM){
+        if(e.paid) monthPaid = round2(monthPaid + e.amount); else monthDue = round2(monthDue + e.amount);
+        if(!byCardMonth[e.card.id]) byCardMonth[e.card.id] = {card:e.card, due:0, paid:0};
+        if(e.paid) byCardMonth[e.card.id].paid = round2(byCardMonth[e.card.id].paid + e.amount);
+        else byCardMonth[e.card.id].due = round2(byCardMonth[e.card.id].due + e.amount);
+      }
+      if(!byDay[e.key]) byDay[e.key] = [];
+      byDay[e.key].push(e);
+    }
+
+    var next = null;
+    for(i=0;i<ev.length;i++){ if(!ev[i].paid && ev[i].date >= t){ next = ev[i]; break; } }
+    var nextSameDay = next ? byDay[next.key].filter(function(x){ return !x.paid; }) : [];
+    var nextTotal = 0; for(i=0;i<nextSameDay.length;i++) nextTotal = round2(nextTotal + nextSameDay[i].amount);
+
+    var html = '';
+
+    if(ui.seeded){
+      html += '<div class="banner">'
+        + '<div style="flex:1">'+L.exampleBanner+'</div>'
+        + '<button class="btn tiny danger" data-act="ask-wipe">'+L.clearExamples+'</button>'
+        + '</div>';
+    }
+
+    html += '<div class="tiles">'
+      + tile(L.tTotalRemaining, money0(totalRemaining), L.tTracked(state.purchases.length))
+      + tile(L.tDueIn(L.mon[ui.calM], ui.calY), money0(monthDue), monthPaid>0 ? L.tAlreadyPaid(money0(monthPaid)) : L.tAcrossCards)
+      + (overdueCount
+          ? tile(L.tPastDue, money0(overdueAmt), L.tNotMarked(overdueCount), true)
+          : tile(L.tNextPayment, next ? money0(nextTotal) : '—', next ? fmtShort(next.date)+' · '+relDay(next.date) : L.tAllPaid))
+      + '</div>';
+
+    var first = mkDate(ui.calY, ui.calM, 1);
+    var startOffset = (first.getDay()+6) % 7;           // Monday-first
+    var dim = lastDay(ui.calY, ui.calM);
+    var prev = shiftMonth(ui.calY, ui.calM, -1);
+    var prevDim = lastDay(prev.y, prev.m);
+    var cells = [];
+    for(i=0;i<startOffset;i++) cells.push({out:true, n:prevDim-startOffset+1+i});
+    for(i=1;i<=dim;i++) cells.push({out:false, n:i, date:mkDate(ui.calY,ui.calM,i)});
+    while(cells.length % 7 !== 0) cells.push({out:true, n:cells.length-startOffset-dim+1});
+
+    html += '<div class="card">'
+      + '<div class="calhead">'
+        + '<h2>'+L.months[ui.calM]+' '+ui.calY+'</h2>'
+        + '<div class="nav">'
+          + '<button type="button" data-act="cal" data-by="-1" title="'+esc(L.prevMonth)+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>'
+          + '<button type="button" data-act="cal-today" style="width:auto;padding:0 10px;font-size:12px;font-weight:600">'+L.today+'</button>'
+          + '<button type="button" data-act="cal" data-by="1" title="'+esc(L.nextMonth)+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>'
+        + '</div>'
+      + '</div>'
+      + '<div class="dow">' + L.dow.map(function(d){ return '<span>'+d+'</span>'; }).join('') + '</div>'
+      + '<div class="days">';
+
+    for(i=0;i<cells.length;i++){
+      var c = cells[i];
+      if(c.out){ html += '<div class="day out"><span class="d">'+c.n+'</span></div>'; continue; }
+      var key = dayKey(c.date);
+      var list = byDay[key] || [];
+      var unpaidPast = false, dots = '';
+      var seen = {}, shown = 0;
+      for(var j=0;j<list.length;j++){
+        if(!list[j].paid && list[j].date < t) unpaidPast = true;
+        if(!seen[list[j].card.id] && shown < 4){
+          seen[list[j].card.id] = true; shown++;
+          var cid = list[j].card.id;
+          var allPaid = list.filter(function(x){ return x.card.id===cid; }).every(function(x){ return x.paid; });
+          dots += dot(list[j].card.color, allPaid);
+        }
+      }
+      var cls = 'day';
+      if(list.length) cls += ' has';
+      if(unpaidPast) cls += ' late';
+      if(key===dayKey(t)) cls += ' today';
+      html += '<button type="button" class="'+cls+'" data-act="pick" data-key="'+key+'" aria-pressed="'+(key===ui.selected)+'">'
+        + '<span class="d">'+c.n+'</span>'
+        + '<span class="dots">'+dots+'</span>'
+        + '</button>';
+    }
+    html += '</div>';
+
+    var cardRows = Object.keys(byCardMonth).map(function(k){ return byCardMonth[k]; })
+      .sort(function(a,b){ return (b.due+b.paid)-(a.due+a.paid); });
+    if(cardRows.length){
+      html += '<hr class="sep">';
+      html += '<div class="pad" style="padding-bottom:6px"><span class="eyebrow">'+esc(L.cardTotals(L.mon[ui.calM], ui.calY))+'</span></div>';
+      for(i=0;i<cardRows.length;i++){
+        var r = cardRows[i];
+        html += '<div class="cardstrip">'
+          + '<span class="swatch lg" style="background:'+esc(r.card.color)+'"></span>'
+          + '<span class="nm">'+esc(r.card.name)+'</span>'
+          + (r.paid>0 ? '<span class="pill done">'+esc(L.paidChip(money0(r.paid)))+'</span>' : '')
+          + '<span class="amount">'+money(r.due)+'</span>'
+          + '</div>';
+      }
+    }
+    html += '</div>';
+
+    var selDate = parseISO(ui.selected);
+    var selList = (byDay[ui.selected]||[]).slice().sort(function(a,b){ return a.card.name.localeCompare(b.card.name); });
+    html += '<div class="card">'
+      + '<div class="pad spread" style="padding-bottom:10px">'
+        + '<div><span class="eyebrow">'+L.selectedDay+'</span><div style="font-size:15px;font-weight:600;margin-top:2px">'+fmtLong(selDate)+'</div></div>'
+        + '<span class="pill ghost">'+relDay(selDate)+'</span>'
+      + '</div>';
+
+    if(!selList.length){
+      html += '<hr class="sep"><div class="empty" style="padding:22px 16px">'+L.noPaymentsDay+'</div>';
+    } else {
+      var groups = {}, order = [];
+      for(i=0;i<selList.length;i++){
+        var g = selList[i].card.id;
+        if(!groups[g]){ groups[g] = {card:selList[i].card, rows:[], total:0}; order.push(g); }
+        groups[g].rows.push(selList[i]);
+        groups[g].total = round2(groups[g].total + selList[i].amount);
+      }
+      for(var gi=0; gi<order.length; gi++){
+        var G = groups[order[gi]];
+        html += '<div class="cardstrip">'
+          + '<span class="swatch lg" style="background:'+esc(G.card.color)+'"></span>'
+          + '<span class="nm">'+esc(G.card.name)+'</span>'
+          + '<span class="xs muted">'+L.cardTotal+'</span>'
+          + '<span class="amount big">'+money(G.total)+'</span>'
+          + '</div>';
+        for(i=0;i<G.rows.length;i++){
+          var e2 = G.rows[i];
+          var late = !e2.paid && e2.date < t;
+          html += '<div class="item">'
+            + '<div class="spread">'
+              + '<div style="min-width:0;flex:1">'
+                + '<div class="title">'+esc(e2.purchase.name)+'</div>'
+                + '<div class="row sm muted" style="gap:6px;margin-top:3px">'
+                  + typePill(e2.purchase.type)
+                  + '<span>'+esc(L.paymentXofY(e2.idx+1, e2.n))+'</span>'
+                  + (e2.paid ? '<span class="pill done">'+L.paidPill+'</span>' : late ? '<span class="pill late">'+L.pastDuePill+'</span>' : '')
+                + '</div>'
+              + '</div>'
+              + '<div class="amount big">'+money(e2.amount)+'</div>'
+            + '</div>'
+            + '<div class="kv">'
+              + '<div><span class="k">'+L.leftAfterThis+'</span><span class="v">'+money(e2.balanceAfter)+'</span></div>'
+              + '<div><span class="k">'+L.paymentsLeft+'</span><span class="v">'+e2.paymentsAfter+'</span></div>'
+              + '<div><span class="k">'+L.paidOffK+'</span><span class="v">'+fmtMonth(e2.payoff)+'</span></div>'
+            + '</div>'
+            + '<div><button class="btn tiny '+(e2.paid?'':'primary')+'" data-act="toggle-paid" data-id="'+e2.purchase.id+'" data-ix="'+e2.idx+'">'
+              + (e2.paid ? L.markUnpaid : L.markPaid) + '</button></div>'
+            + '</div>';
+        }
+      }
+    }
+    html += '</div>';
+
+    var active = state.purchases.map(function(p){ return {p:p, s:stats(p), c:cardById(p.cardId)}; })
+      .filter(function(x){ return x.c && !x.s.done; })
+      .sort(function(a,b){ return a.s.nextDue - b.s.nextDue; });
+    html += '<div class="card">'
+      + '<div class="pad" style="padding-bottom:4px"><span class="eyebrow">'+L.payoffCountdown+'</span></div>';
+    if(!active.length){
+      html += '<hr class="sep"><div class="empty" style="padding:22px 16px">'+L.nothingOutstanding+'</div>';
+    } else {
+      for(i=0;i<active.length;i++){
+        var A = active[i], pct = A.p.total>0 ? Math.min(100, Math.round(A.s.paidAmt/A.p.total*100)) : 0;
+        html += '<div class="item">'
+          + '<div class="spread">'
+            + '<div class="row" style="gap:7px;min-width:0;flex:1">'
+              + '<span class="swatch" style="background:'+esc(A.c.color)+'"></span>'
+              + '<span class="title">'+esc(A.p.name)+'</span>'
+              + typePill(A.p.type)
+            + '</div>'
+            + '<div class="amount">'+money(A.s.remaining)+'</div>'
+          + '</div>'
+          + '<div class="bar"><i style="width:'+pct+'%;background:'+esc(A.c.color)+'"></i></div>'
+          + '<div class="kv">'
+            + '<div><span class="k">'+L.tNextPayment+'</span><span class="v">'+(A.s.nextDue?fmtShort(A.s.nextDue)+' · '+money(A.s.nextAmt):'—')+'</span></div>'
+            + '<div><span class="k">'+L.paymentsLeft+'</span><span class="v">'+A.s.monthsLeft+' / '+A.s.n+'</span></div>'
+            + '<div><span class="k">'+L.debtFree+'</span><span class="v">'+fmtMonth(A.s.payoff)+'</span></div>'
+            + (A.s.overdue ? '<div><span class="k">'+L.tPastDue+'</span><span class="v" style="color:var(--bad)">'+money(A.s.overdueAmt)+'</span></div>' : '')
+          + '</div>'
+          + '</div>';
+      }
+    }
+    html += '</div>';
+
+    el.innerHTML = html;
+  }
+
+  /* ================= CARDS VIEW ================= */
+  function daySelect(id, val){
+    var o='';
+    for(var d=1;d<=31;d++) o += '<option value="'+d+'"'+(d===val?' selected':'')+'>'+ord(d)+'</option>';
+    return '<select id="'+id+'">'+o+'</select>';
+  }
+
+  function renderCards(){
+    var el = document.getElementById('view-cards');
+    var html = '';
+
+    if(ui.cardForm){
+      var f = ui.cardForm;
+      html += '<form class="card pad stack" id="form-card" novalidate>'
+        + '<div class="spread"><h2 style="font-size:15px">'+(f.id?L.editCard:L.newCard)+'</h2>'
+          + '<button class="btn tiny" type="button" data-act="cancel-card">'+L.cancel+'</button></div>'
+        + '<div class="field"><label for="c-name">'+L.cardName+'</label>'
+          + '<input id="c-name" type="text" value="'+esc(f.name)+'" placeholder="'+esc(L.cardNamePh)+'" maxlength="40" autocomplete="off">'
+          + '<span class="hint">'+L.cardNameHint+'</span></div>'
+        + '<div class="field"><label>'+L.color+'</label><div class="swatches">'
+          + PALETTE.map(function(p){ return '<button type="button" data-act="pick-color" data-color="'+p+'" style="background:'+p+'" aria-pressed="'+(f.color.toLowerCase()===p.toLowerCase())+'" title="'+p+'"></button>'; }).join('')
+          + '<input type="color" id="c-color" value="'+esc(f.color)+'" title="'+esc(L.customColor)+'">'
+          + '</div></div>'
+        + '<label class="check"><input type="checkbox" id="c-usedates" '+(f.useDates?'checked':'')+'> '+L.useDates+'</label>'
+        + '<div class="grid2" id="c-dates" '+(f.useDates?'':'hidden')+'>'
+          + '<div class="field"><label for="c-cut">'+L.cutoffDay+'</label>'+daySelect('c-cut', f.cutoffDay||5)+'<span class="hint">'+L.cutoffHint+'</span></div>'
+          + '<div class="field"><label for="c-due">'+L.dueDay+'</label>'+daySelect('c-due', f.dueDay||25)+'<span class="hint">'+L.dueHint+'</span></div>'
+        + '</div>'
+        + '<div class="field"><span class="hint">'+L.noDatesHint+'</span></div>'
+        + (ui.formErr ? '<div class="formerr">'+esc(ui.formErr)+'</div>' : '')
+        + '<button class="btn primary wide" type="submit">'+(f.id?L.saveCard:L.addCard)+'</button>'
+        + '</form>';
+    } else {
+      html += '<button class="btn primary wide" data-act="new-card">'+L.newCardBtn+'</button>';
+    }
+
+    if(!state.cards.length){
+      html += '<div class="card empty"><strong>'+L.noCards+'</strong>'+L.noCardsBody2+'</div>';
+    } else {
+      html += '<div class="card">';
+      for(var i=0;i<state.cards.length;i++){
+        var c = state.cards[i];
+        var ps = state.purchases.filter(function(p){ return p.cardId===c.id; });
+        var rem=0, mo=0, open=0;
+        for(var j=0;j<ps.length;j++){
+          var s = stats(ps[j]);
+          rem = round2(rem + s.remaining);
+          if(!s.done){ open++; mo = round2(mo + s.monthly); }
+        }
+        html += '<div class="item">'
+          + '<div class="spread">'
+            + '<div class="row" style="gap:8px;min-width:0;flex:1">'
+              + '<span class="swatch lg" style="background:'+esc(c.color)+'"></span>'
+              + '<span class="title">'+esc(c.name)+'</span>'
+            + '</div>'
+            + '<div class="amount big">'+money(rem)+'</div>'
+          + '</div>'
+          + '<div class="kv">'
+            + '<div><span class="k">'+L.statement+'</span><span class="v" style="font-size:12px">'+esc(cardDatesLabel(c))+'</span></div>'
+            + '<div><span class="k">'+L.monthlyLoad+'</span><span class="v">'+money(mo)+'</span></div>'
+            + '<div><span class="k">'+L.openPurchases+'</span><span class="v">'+open+' / '+ps.length+'</span></div>'
+          + '</div>'
+          + '<div class="row" style="gap:7px">'
+            + '<button class="btn tiny" data-act="edit-card" data-id="'+c.id+'">'+L.edit+'</button>'
+            + '<button class="btn tiny danger" data-act="ask-del" data-target="card:'+c.id+'">'+L.del+'</button>'
+          + '</div>'
+          + '</div>';
+        if(ui.pendingDelete==='card:'+c.id){
+          html += '<div class="confirm"><span>'+esc(L.confirmDelCard(c.name, ps.length))+'</span>'
+            + '<button class="btn tiny danger" data-act="del-card" data-id="'+c.id+'">'+L.yesDelete+'</button>'
+            + '<button class="btn tiny" data-act="cancel-del">'+L.keepIt+'</button></div>';
+        }
+      }
+      html += '</div>';
+    }
+    el.innerHTML = html;
+  }
+
+  /* ================= PURCHASES VIEW ================= */
+  function renderPurchases(){
+    var el = document.getElementById('view-purchases');
+    var html = '';
+
+    if(!state.cards.length){
+      el.innerHTML = '<div class="card empty"><strong>'+L.addCardFirst+'</strong>'+L.addCardFirstBody+'</div>'
+        + '<button class="btn primary wide" data-act="goto" data-view="cards">'+L.goToCards+'</button>';
+      return;
+    }
+
+    if(ui.purchaseForm){
+      var f = ui.purchaseForm;
+      var amountLabel = f.type==='msi' ? L.amountMsi : f.type==='mci' ? L.amountMci : L.amountDirect;
+      var amountHint  = f.type==='msi' ? L.hintMsi  : f.type==='mci' ? L.hintMci  : L.hintDirect;
+      var per = (f.type==='direct' ? Number(f.total)||0 : (Number(f.total)||0) / Math.max(1, f.months|0));
+      html += '<form class="card pad stack" id="form-purchase" novalidate>'
+        + '<div class="spread"><h2 style="font-size:15px">'+(f.id?L.editPurchase:L.newPurchase)+'</h2>'
+          + '<button class="btn tiny" type="button" data-act="cancel-purchase">'+L.cancel+'</button></div>'
+        + '<div class="field"><label for="p-name">'+L.whatBuy+'</label>'
+          + '<input id="p-name" type="text" value="'+esc(f.name)+'" placeholder="'+esc(L.purchasePh)+'" maxlength="80" autocomplete="off"></div>'
+        + '<div class="field"><label for="p-card">'+L.cardLbl+'</label><select id="p-card">'
+          + state.cards.map(function(c){ return '<option value="'+c.id+'"'+(c.id===f.cardId?' selected':'')+'>'+esc(c.name)+'</option>'; }).join('')
+          + '</select></div>'
+        + '<div class="field"><label>'+L.plan+'</label><div class="seg">'
+          + '<button type="button" data-act="pick-type" data-type="msi" aria-pressed="'+(f.type==='msi')+'">MSI</button>'
+          + '<button type="button" data-act="pick-type" data-type="mci" aria-pressed="'+(f.type==='mci')+'">MCI</button>'
+          + '<button type="button" data-act="pick-type" data-type="direct" aria-pressed="'+(f.type==='direct')+'">'+L.onePayment+'</button>'
+          + '</div><span class="hint">'+typeName(f.type)+'</span></div>'
+        + '<div class="grid2">'
+          + '<div class="field"><label for="p-total">'+amountLabel+'</label>'
+            + '<input id="p-total" type="number" inputmode="decimal" step="0.01" min="0" value="'+(f.total===''?'':esc(f.total))+'" placeholder="0.00">'
+            + '<span class="hint">'+amountHint+'</span></div>'
+          + '<div class="field" id="p-months-wrap" '+(f.type==='direct'?'hidden':'')+'>'
+            + '<label for="p-months">'+L.months_+'</label>'
+            + '<input id="p-months" type="number" inputmode="numeric" step="1" min="1" max="120" value="'+esc(f.months)+'">'
+            + '<span class="hint">'+(per>0 ? esc(L.perMonth(money(round2(per)))) : L.monthsHint)+'</span></div>'
+        + '</div>'
+        + '<div class="field"><label for="p-date">'+L.purchaseDate+'</label><input id="p-date" type="date" value="'+esc(f.date)+'"></div>'
+        + '<div class="field"><label for="p-note">'+L.note+' <span class="muted" style="font-weight:400">'+L.optional+'</span></label>'
+          + '<input id="p-note" type="text" value="'+esc(f.note)+'" maxlength="200" placeholder="'+esc(L.notePh)+'" autocomplete="off"></div>'
+        + (ui.formErr ? '<div class="formerr">'+esc(ui.formErr)+'</div>' : '')
+        + '<button class="btn primary wide" type="submit">'+(f.id?L.savePurchase:L.addPurchase)+'</button>'
+        + '</form>';
+    } else {
+      html += '<button class="btn primary wide" data-act="new-purchase">'+L.newPurchaseBtn+'</button>';
+    }
+
+    if(!state.purchases.length){
+      html += '<div class="card empty"><strong>'+L.noPurchases+'</strong>'+L.noPurchasesBody+'</div>';
+      el.innerHTML = html; return;
+    }
+
+    var t = today();
+    for(var ci=0; ci<state.cards.length; ci++){
+      var c = state.cards[ci];
+      var ps = state.purchases.filter(function(p){ return p.cardId===c.id; });
+      if(!ps.length) continue;
+      var totRem = 0;
+      var rows = ps.map(function(p){ return {p:p, s:stats(p)}; });
+      rows.sort(function(a,b){ return (a.s.done?1:0)-(b.s.done?1:0) || (a.s.nextDue||0)-(b.s.nextDue||0); });
+      for(var k=0;k<rows.length;k++) totRem = round2(totRem + rows[k].s.remaining);
+
+      html += '<div class="card">'
+        + '<div class="cardstrip">'
+          + '<span class="swatch lg" style="background:'+esc(c.color)+'"></span>'
+          + '<span class="nm">'+esc(c.name)+'</span>'
+          + '<span class="xs muted">'+esc(cardDatesLabel(c))+'</span>'
+          + '<span class="amount">'+money(totRem)+'</span>'
+        + '</div>';
+
+      for(k=0;k<rows.length;k++){
+        var p = rows[k].p, s = rows[k].s;
+        var pct = p.total>0 ? Math.min(100, Math.round(s.paidAmt/p.total*100)) : 0;
+        html += '<div class="item">'
+          + '<div class="spread">'
+            + '<div style="min-width:0;flex:1">'
+              + '<div class="title">'+esc(p.name)+'</div>'
+              + '<div class="row sm muted" style="gap:6px;margin-top:3px">'
+                + typePill(p.type)
+                + '<span>'+(p.type==='direct' ? money(p.total) : money(s.monthly)+' × '+s.n)+'</span>'
+                + (s.done ? '<span class="pill done">'+L.paidOffPill+'</span>' : s.overdue ? '<span class="pill late">'+esc(L.nPastDue(s.overdue))+'</span>' : '')
+              + '</div>'
+            + '</div>'
+            + '<div style="text-align:right"><div class="amount big">'+money(s.remaining)+'</div><div class="xs muted">'+esc(L.leftOf(money(p.total)))+'</div></div>'
+          + '</div>'
+          + '<div class="bar"><i style="width:'+pct+'%;background:'+esc(c.color)+'"></i></div>'
+          + '<div class="kv">'
+            + '<div><span class="k">'+L.bought+'</span><span class="v" style="font-size:12px">'+fmtDate(parseISO(p.date))+'</span></div>'
+            + '<div><span class="k">'+L.tNextPayment+'</span><span class="v" style="font-size:12px">'+(s.nextDue?fmtShort(s.nextDue):'—')+'</span></div>'
+            + '<div><span class="k">'+L.progress+'</span><span class="v">'+s.paidCount+'/'+s.n+'</span></div>'
+            + '<div><span class="k">'+L.debtFree+'</span><span class="v" style="font-size:12px">'+fmtMonth(s.payoff)+'</span></div>'
+          + '</div>'
+          + (p.note ? '<div class="xs muted" style="overflow-wrap:anywhere">'+esc(p.note)+'</div>' : '')
+          + '<div class="row" style="gap:7px">'
+            + '<button class="btn tiny" data-act="edit-purchase" data-id="'+p.id+'">'+L.edit+'</button>'
+            + '<button class="btn tiny danger" data-act="ask-del" data-target="purchase:'+p.id+'">'+L.del+'</button>'
+          + '</div>'
+          + '</div>';
+
+        if(ui.pendingDelete==='purchase:'+p.id){
+          html += '<div class="confirm"><span>'+esc(L.confirmDelPurchase(p.name))+'</span>'
+            + '<button class="btn tiny danger" data-act="del-purchase" data-id="'+p.id+'">'+L.yesDelete+'</button>'
+            + '<button class="btn tiny" data-act="cancel-del">'+L.keepIt+'</button></div>';
+        }
+
+        html += '<details class="disc" '+(ui.openPurchase[p.id]?'open':'')+' data-pid="'+p.id+'">'
+          + '<summary>'+esc(L.paymentSchedule(s.n))+'</summary>';
+        for(var q=0;q<s.sch.length;q++){
+          var it = s.sch[q], isLate = !it.paid && it.date < t;
+          html += '<div class="inst'+(it.paid?' ispaid':'')+(isLate?' islate':'')+'">'
+            + '<span class="ix">'+(q+1)+'/'+s.n+'</span>'
+            + '<span class="dt">'+fmtDate(it.date)+'</span>'
+            + '<span class="amount">'+money(it.amount)+'</span>'
+            + '<button class="btn tiny'+(it.paid?'':' primary')+'" data-act="toggle-paid" data-id="'+p.id+'" data-ix="'+q+'">'+(it.paid?L.undo:L.pay)+'</button>'
+            + '</div>';
+        }
+        html += '</details>';
+      }
+      html += '</div>';
+    }
+    el.innerHTML = html;
+  }
+
+  /* ================= BACKUP VIEW ================= */
+  function renderData(){
+    var el = document.getElementById('view-data');
+    var payload = JSON.stringify({v:1, cards:state.cards, purchases:state.purchases}, null, 2);
+    el.innerHTML = ''
+      + '<div class="card pad stack">'
+        + '<div class="spread"><h2 style="font-size:15px">'+L.backupTitle+'</h2><button class="btn tiny" data-act="goto" data-view="calendar">'+L.done+'</button></div>'
+        + '<p class="sm muted" style="margin:0">'+L.backupIntro+'</p>'
+        + '<div class="field"><label for="d-export">'+L.exportLbl+'</label>'
+          + '<textarea id="d-export" readonly spellcheck="false">'+esc(payload)+'</textarea></div>'
+        + '<div class="row"><button class="btn primary" data-act="copy">'+L.copyBtn+'</button>'
+          + '<span class="sm muted" id="copy-msg"></span></div>'
+      + '</div>'
+      + '<div class="card pad stack">'
+        + '<div class="field"><label for="d-import">'+L.importLbl+'</label>'
+          + '<textarea id="d-import" spellcheck="false" placeholder=\'{"v":1,"cards":[...],"purchases":[...]}\'></textarea>'
+          + '<span class="hint">'+L.importHint+'</span></div>'
+        + (ui.importMsg ? '<div class="'+(ui.importOk?'sm':'formerr')+'">'+esc(ui.importMsg)+'</div>' : '')
+        + '<button class="btn wide" data-act="import">'+L.importBtn+'</button>'
+      + '</div>'
+      + '<div class="card pad stack">'
+        + '<div class="field"><label>'+L.startOver+'</label><span class="hint">'+L.startOverHint+'</span></div>'
+        + (ui.pendingDelete==='wipe'
+            ? '<div class="row"><button class="btn danger" data-act="wipe">'+L.eraseConfirm+'</button><button class="btn" data-act="cancel-del">'+L.cancel+'</button></div>'
+            : '<button class="btn danger wide" data-act="ask-wipe">'+L.eraseAll+'</button>')
+      + '</div>';
+  }
+
+  /* ================= render ================= */
+  function render(){
+    document.getElementById('cnt-p').textContent = state.purchases.length ? state.purchases.length : '';
+    document.getElementById('cnt-c').textContent = state.cards.length ? state.cards.length : '';
+    var views = ['calendar','purchases','cards','data'];
+    for(var i=0;i<views.length;i++){
+      document.getElementById('view-'+views[i]).hidden = (ui.view !== views[i]);
+    }
+    var tabs = document.querySelectorAll('.tab');
+    for(i=0;i<tabs.length;i++) tabs[i].setAttribute('aria-selected', String(tabs[i].dataset.view===ui.view));
+    if(ui.view==='calendar') renderCalendar();
+    else if(ui.view==='cards') renderCards();
+    else if(ui.view==='purchases') renderPurchases();
+    else renderData();
+  }
+
+  function go(view){ ui.view=view; ui.pendingDelete=null; ui.formErr=''; render(); window.scrollTo(0,0); }
+
+  /* ================= form draft readers ================= */
+  function readCardForm(){
+    var f = ui.cardForm; if(!f) return;
+    var g = function(id){ return document.getElementById(id); };
+    if(g('c-name')) f.name = g('c-name').value;
+    if(g('c-color')) f.color = g('c-color').value;
+    if(g('c-usedates')) f.useDates = g('c-usedates').checked;
+    if(g('c-cut')) f.cutoffDay = parseInt(g('c-cut').value,10)||5;
+    if(g('c-due')) f.dueDay = parseInt(g('c-due').value,10)||25;
+  }
+  function readPurchaseForm(){
+    var f = ui.purchaseForm; if(!f) return;
+    var g = function(id){ return document.getElementById(id); };
+    if(g('p-name')) f.name = g('p-name').value;
+    if(g('p-card')) f.cardId = g('p-card').value;
+    if(g('p-total')) f.total = g('p-total').value;
+    if(g('p-months')) f.months = parseInt(g('p-months').value,10)||1;
+    if(g('p-date')) f.date = g('p-date').value;
+    if(g('p-note')) f.note = g('p-note').value;
+  }
+
+  /* ================= events ================= */
+  document.addEventListener('click', function(ev){
+    var tabEl = ev.target.closest ? ev.target.closest('.tab') : null;
+    if(tabEl){ go(tabEl.dataset.view); return; }
+
+    var el = ev.target.closest ? ev.target.closest('[data-act]') : null;
+    if(!el) return;
+    var act = el.dataset.act;
+
+    if(act==='lang'){
+      if(el.dataset.lang !== L.code){
+        readCardForm(); readPurchaseForm();
+        setLang(el.dataset.lang, true);
+      }
+      return;
+    }
+
+    if(act==='goto'){ go(el.dataset.view); return; }
+
+    if(act==='cal'){
+      var s = shiftMonth(ui.calY, ui.calM, parseInt(el.dataset.by,10));
+      ui.calY=s.y; ui.calM=s.m; render(); return;
+    }
+    if(act==='cal-today'){
+      var t=today(); ui.calY=t.getFullYear(); ui.calM=t.getMonth(); ui.selected=dayKey(t); render(); return;
+    }
+    if(act==='pick'){ ui.selected = el.dataset.key; render(); return; }
+
+    if(act==='toggle-paid'){
+      var p = purchaseById(el.dataset.id);
+      if(p){
+        var ix = parseInt(el.dataset.ix,10);
+        while(p.paid.length <= ix) p.paid.push(false);
+        p.paid[ix] = !p.paid[ix];
+        save(); render();
+      }
+      return;
+    }
+
+    if(act==='new-card'){
+      ui.cardForm = { id:null, name:'', color:PALETTE[state.cards.length % PALETTE.length], useDates:true, cutoffDay:5, dueDay:25 };
+      ui.formErr=''; render();
+      var n=document.getElementById('c-name'); if(n) n.focus();
+      return;
+    }
+    if(act==='edit-card'){
+      var c = cardById(el.dataset.id);
+      if(c){ ui.cardForm = { id:c.id, name:c.name, color:c.color, useDates:c.useDates, cutoffDay:c.cutoffDay||5, dueDay:c.dueDay||25 }; ui.formErr=''; render(); window.scrollTo(0,0); }
+      return;
+    }
+    if(act==='cancel-card'){ ui.cardForm=null; ui.formErr=''; render(); return; }
+    if(act==='pick-color'){ readCardForm(); ui.cardForm.color = el.dataset.color; render(); return; }
+    if(act==='del-card'){
+      var id = el.dataset.id;
+      state.purchases = state.purchases.filter(function(x){ return x.cardId!==id; });
+      state.cards = state.cards.filter(function(x){ return x.id!==id; });
+      ui.pendingDelete=null; save(); render(); return;
+    }
+
+    if(act==='new-purchase'){
+      ui.purchaseForm = { id:null, name:'', cardId:(state.cards[0]||{}).id, type:'msi', total:'', months:12, date:toISO(today()), note:'' };
+      ui.formErr=''; render();
+      var pn=document.getElementById('p-name'); if(pn) pn.focus();
+      return;
+    }
+    if(act==='edit-purchase'){
+      var pp = purchaseById(el.dataset.id);
+      if(pp){ ui.purchaseForm = { id:pp.id, name:pp.name, cardId:pp.cardId, type:pp.type, total:String(pp.total), months:pp.months, date:pp.date, note:pp.note }; ui.formErr=''; render(); window.scrollTo(0,0); }
+      return;
+    }
+    if(act==='cancel-purchase'){ ui.purchaseForm=null; ui.formErr=''; render(); return; }
+    if(act==='pick-type'){
+      readPurchaseForm();
+      ui.purchaseForm.type = el.dataset.type;
+      if(ui.purchaseForm.type==='direct') ui.purchaseForm.months = 1;
+      else if(ui.purchaseForm.months < 2) ui.purchaseForm.months = 12;
+      render(); return;
+    }
+    if(act==='del-purchase'){
+      state.purchases = state.purchases.filter(function(x){ return x.id!==el.dataset.id; });
+      ui.pendingDelete=null; save(); render(); return;
+    }
+
+    if(act==='ask-del'){ ui.pendingDelete = el.dataset.target; render(); return; }
+    if(act==='cancel-del'){ ui.pendingDelete=null; render(); return; }
+    if(act==='ask-wipe'){ ui.pendingDelete='wipe'; ui.view='data'; render(); window.scrollTo(0,document.body.scrollHeight); return; }
+    if(act==='wipe'){
+      state.cards=[]; state.purchases=[]; ui.seeded=false; ui.pendingDelete=null; ui.importMsg='';
+      lsDel(LS_KEY); save(); go('cards'); return;
+    }
+
+    if(act==='copy'){
+      var ta = document.getElementById('d-export');
+      var msg = document.getElementById('copy-msg');
+      var done = function(ok){ if(msg) msg.textContent = ok ? L.copied : L.copyFail; };
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(ta.value).then(function(){ done(true); }, function(){ ta.focus(); ta.select(); done(false); });
+      } else { ta.focus(); ta.select(); done(false); }
+      return;
+    }
+    if(act==='import'){
+      var src = document.getElementById('d-import').value;
+      try{
+        var o = JSON.parse(src);
+        if(!o || !Array.isArray(o.cards) || !Array.isArray(o.purchases)) throw new Error('shape');
+        var cards = o.cards.map(normCard);
+        var ids = {}; for(var i2=0;i2<cards.length;i2++) ids[cards[i2].id]=true;
+        var purch = o.purchases.map(normPurchase).filter(function(x){ return x && ids[x.cardId]; });
+        state.cards = cards; state.purchases = purch; ui.seeded = false;
+        save();
+        ui.importOk = true;
+        ui.importMsg = L.imported(cards.length, purch.length);
+        render();
+      }catch(e){
+        ui.importOk = false;
+        ui.importMsg = L.importErr;
+        render();
+      }
+      return;
+    }
+  });
+
+  document.getElementById('btn-theme').addEventListener('click', cycleTheme);
+  document.getElementById('btn-data').addEventListener('click', function(){ ui.importMsg=''; go('data'); });
+
+  document.addEventListener('submit', function(ev){
+    var form = ev.target;
+    if(form.id==='form-card'){
+      ev.preventDefault();
+      readCardForm();
+      var f = ui.cardForm;
+      var name = (f.name||'').trim();
+      if(!name){ ui.formErr=L.errCardName; render(); return; }
+      if(f.useDates && f.cutoffDay===f.dueDay){ ui.formErr=L.errSameDay; render(); return; }
+      if(f.id){
+        var c = cardById(f.id);
+        c.name=name; c.color=f.color; c.useDates=f.useDates;
+        c.cutoffDay = f.useDates ? f.cutoffDay : null;
+        c.dueDay = f.useDates ? f.dueDay : null;
+      } else {
+        state.cards.push(normCard({ id:uid(), name:name, color:f.color, useDates:f.useDates, cutoffDay:f.useDates?f.cutoffDay:null, dueDay:f.useDates?f.dueDay:null }));
+      }
+      ui.cardForm=null; ui.formErr=''; save(); render(); return;
+    }
+    if(form.id==='form-purchase'){
+      ev.preventDefault();
+      readPurchaseForm();
+      var pf = ui.purchaseForm;
+      var pname = (pf.name||'').trim();
+      var total = Number(pf.total);
+      if(!pname){ ui.formErr=L.errPurchaseName; render(); return; }
+      if(!cardById(pf.cardId)){ ui.formErr=L.errPickCard; render(); return; }
+      if(!isFinite(total) || total<=0){ ui.formErr=L.errAmount; render(); return; }
+      var months = pf.type==='direct' ? 1 : (pf.months|0);
+      if(months<1 || months>120){ ui.formErr=L.errMonths; render(); return; }
+      if(pf.id){
+        var old = purchaseById(pf.id);
+        var keep = old.paid.slice(0, months);
+        while(keep.length<months) keep.push(false);
+        var upd = normPurchase({ id:pf.id, cardId:pf.cardId, name:pname, note:pf.note, type:pf.type, total:total, months:months, date:pf.date, paid:keep });
+        for(var q2=0;q2<state.purchases.length;q2++) if(state.purchases[q2].id===pf.id) state.purchases[q2]=upd;
+      } else {
+        state.purchases.push(normPurchase({ id:uid(), cardId:pf.cardId, name:pname, note:pf.note, type:pf.type, total:total, months:months, date:pf.date, paid:[] }));
+      }
+      ui.purchaseForm=null; ui.formErr=''; save(); render(); return;
+    }
+  });
+
+  document.addEventListener('change', function(ev){
+    var id = ev.target.id;
+    if(id==='c-usedates'){
+      readCardForm();
+      var w = document.getElementById('c-dates');
+      if(w) w.hidden = !ui.cardForm.useDates;
+      return;
+    }
+    if(id==='c-color'){ readCardForm(); render(); return; }
+    if(id==='p-total' || id==='p-months'){ readPurchaseForm(); render(); return; }
+  });
+
+  document.addEventListener('toggle', function(ev){
+    var d = ev.target;
+    if(d && d.tagName==='DETAILS' && d.dataset.pid) ui.openPurchase[d.dataset.pid] = d.open;
+  }, true);
+
+  /* ================= boot ================= */
+  setLang(lsGet(LS_LANG) || 'en', false);
+  if(!load()) seed();
+  render();
+})();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function(){ navigator.serviceWorker.register('sw.js'); });
+}
+</script>
+</body>
+</html>
